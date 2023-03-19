@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 
 import 'import_page.dart';
 
@@ -28,7 +29,7 @@ class CourseTableHomePage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const ImportTablePage()
+                      builder: (context) => const ImportTablePage(),
                   ),
                 );
               },
@@ -50,4 +51,3 @@ class CourseTableHomePage extends StatelessWidget {
     );
   }
 }
-

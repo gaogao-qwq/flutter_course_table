@@ -5,9 +5,11 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 class CourseTable {
+  final int statusCode;
   final List<CourseInfo> data;
 
   const CourseTable({
+    required this.statusCode,
     required this.data,
   });
 }
@@ -48,19 +50,33 @@ class CourseInfo {
 }
 
 Future<CourseTable> fetchCourseTable(String? username, String? password) async {
-  final response = await http.get(
+  http.Response response = await http.get(
     Uri.parse('http://localhost:56789/login'),
     headers: {
       HttpHeaders.authorizationHeader: 'Basic ${utf8.fuse(base64).encode('$username:$password')}',
     },
   );
-  return parseCourseInfo(response.bodyBytes);
+
+  // runZoned(
+  //   () async => response = await http.get(
+  //     Uri.parse('http://localhost:56789/login'),
+  //     headers: {
+  //       HttpHeaders.authorizationHeader: 'Basic ${utf8.fuse(base64).encode('$username:$password')}',
+  //     },
+  //   ),
+  // );
+
+  return parseCourseInfo(response.bodyBytes, response.statusCode);
 }
 
-CourseTable parseCourseInfo(Uint8List responseBody) {
+CourseTable parseCourseInfo(Uint8List responseBody, int statusCode) {
   var responseString = const Utf8Decoder().convert(responseBody);
-  final jsonMap = jsonDecode(responseString).cast<Map<String, dynamic>>();
-  return CourseTable(
-    data: jsonMap.map<CourseInfo>((json) => CourseInfo.fromJson(json)).toList(),
-  );
+  if (statusCode == HttpStatus.ok) {
+    final jsonMap = jsonDecode(responseString).cast<Map<String, dynamic>>();
+    return CourseTable(
+      statusCode: statusCode,
+      data: jsonMap.map<CourseInfo>((json) => CourseInfo.fromJson(json)).toList(),
+    );
+  }
+  return CourseTable(statusCode: statusCode, data: []);
 }
