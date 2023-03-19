@@ -92,69 +92,73 @@ class _ImportTablePageState extends State<ImportTablePage> {
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
                     child: ElevatedButton(
                       onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          context.loaderOverlay.show(widget: const LoadingOverlay());
-                          setState(() {
-                            _isLoaderVisible = context.loaderOverlay.visible;
+                        if (!_formKey.currentState!.validate()) {
+                          return;
+                        }
+
+                        context.loaderOverlay.show(widget: const LoadingOverlay());
+                        setState(() {
+                          _isLoaderVisible = context.loaderOverlay.visible;
+                        });
+
+                        CourseTable? courseTable;
+                        var result = runZonedGuarded(
+                              () async {
+                            return await fetchCourseTable(username, password);
+                          },
+                              (error, stack) {
+                            // showDialog(context: context, builder: (context) {
+                            //   return AlertDialog(
+                            //     title: const Text("Oops"),
+                            //     content: Text(error.toString()),
+                            //     actions: <Widget>[
+                            //       TextButton(
+                            //         onPressed: () => {
+                            //           Navigator.of(context).pop()
+                            //         },
+                            //         child: const Text("OK"),
+                            //       )
+                            //     ],
+                            //   );
+                            // });
+                          },
+                          // zoneSpecification: ZoneSpecification(
+                          //   handleUncaughtError:  (Zone self, ZoneDelegate parent, Zone zone,
+                          //                          Object error, StackTrace stackTrace) {
+                          //   },
+                          // ),
+                        );
+                        result?.then((value) => {
+                          courseTable = value
+                        });
+
+                        if (_isLoaderVisible) {
+                          context.loaderOverlay.hide();
+                        }
+                        setState(() {
+                          _isLoaderVisible = context.loaderOverlay.visible;
+                        });
+
+                        if (courseTable == null) {
+                          showDialog(context: context, builder: (context) {
+                            return AlertDialog(
+                              title: const Text("Oops"),
+                              content: const Text("Can't get course table, check if the network is down."),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () => {
+                                    Navigator.of(context).pop()
+                                  },
+                                  child: const Text("OK"),
+                                )
+                              ],
+                            );
                           });
+                          return;
+                        }
 
-                          CourseTable? courseTable;
-                          var result = runZonedGuarded(
-                            () async {
-                              return await fetchCourseTable(username, password);
-                            },
-                            (error, stack) {
-                              // showDialog(context: context, builder: (context) {
-                              //   return AlertDialog(
-                              //     title: const Text("Oops"),
-                              //     content: Text(error.toString()),
-                              //     actions: <Widget>[
-                              //       TextButton(
-                              //         onPressed: () => {
-                              //           Navigator.of(context).pop()
-                              //         },
-                              //         child: const Text("OK"),
-                              //       )
-                              //     ],
-                              //   );
-                              // });
-                            },
-                            // zoneSpecification: ZoneSpecification(
-                            //   handleUncaughtError:  (Zone self, ZoneDelegate parent, Zone zone,
-                            //                          Object error, StackTrace stackTrace) {
-                            //   },
-                            // ),
-                          );
-                          result?.then((value) => {
-                            courseTable = value
-                          });
-
-                          if (_isLoaderVisible) {
-                            context.loaderOverlay.hide();
-                          }
-                          setState(() {
-                            _isLoaderVisible = context.loaderOverlay.visible;
-                          });
-
-                          if (courseTable == null) {
-                            showDialog(context: context, builder: (context) {
-                              return AlertDialog(
-                                title: const Text("Oops"),
-                                content: const Text("Can't get course table, check if the network is down."),
-                                actions: <Widget>[
-                                  TextButton(
-                                    onPressed: () => {
-                                      Navigator.of(context).pop()
-                                    },
-                                    child: const Text("OK"),
-                                  )
-                                ],
-                              );
-                            });
-                            return;
-                          }
-
-                          if (courseTable?.statusCode == 401) {
+                        switch (courseTable?.statusCode) {
+                          case 401:
                             showDialog(context: context, builder: (context) {
                               return AlertDialog(
                                 title: const Text("Oops"),
@@ -169,13 +173,26 @@ class _ImportTablePageState extends State<ImportTablePage> {
                                 ],
                               );
                             });
-                            return;
-                          }
-
-                          if (courseTable?.statusCode == 200) {
+                            break;
+                          case 200:
                             debugPrint(courseTable?.statusCode.toString());
-                          }
-
+                            break;
+                          default:
+                            showDialog(context: context, builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Oops"),
+                                content: Text("Some error occurred, server response status code: ${courseTable?.statusCode}"),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () => {
+                                      Navigator.of(context).pop()
+                                    },
+                                    child: const Text("OK"),
+                                  )
+                                ],
+                              );
+                            });
+                            break;
                         }
                       },
                       style: const ButtonStyle(
