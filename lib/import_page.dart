@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import 'package:flutter_course_table_demo/request_handlers.dart';
@@ -102,35 +100,15 @@ class _ImportTablePageState extends State<ImportTablePage> {
                         });
 
                         CourseTable? courseTable;
-                        var result = runZonedGuarded(
-                              () async {
-                            return await fetchCourseTable(username, password);
-                          },
-                              (error, stack) {
-                            // showDialog(context: context, builder: (context) {
-                            //   return AlertDialog(
-                            //     title: const Text("Oops"),
-                            //     content: Text(error.toString()),
-                            //     actions: <Widget>[
-                            //       TextButton(
-                            //         onPressed: () => {
-                            //           Navigator.of(context).pop()
-                            //         },
-                            //         child: const Text("OK"),
-                            //       )
-                            //     ],
-                            //   );
-                            // });
-                          },
-                          // zoneSpecification: ZoneSpecification(
-                          //   handleUncaughtError:  (Zone self, ZoneDelegate parent, Zone zone,
-                          //                          Object error, StackTrace stackTrace) {
-                          //   },
-                          // ),
-                        );
-                        result?.then((value) => {
-                          courseTable = value
-                        });
+                        try {
+                          courseTable = await fetchCourseTable(username, password);
+                        } on NoSuchMethodError {
+                          courseTable = const CourseTable(statusCode: 200);
+                        } catch (e) {
+                          courseTable = null;
+                        }
+
+                        if (!mounted) return;
 
                         if (_isLoaderVisible) {
                           context.loaderOverlay.hide();
@@ -157,7 +135,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                           return;
                         }
 
-                        switch (courseTable?.statusCode) {
+                        switch (courseTable.statusCode) {
                           case 401:
                             showDialog(context: context, builder: (context) {
                               return AlertDialog(
@@ -175,7 +153,27 @@ class _ImportTablePageState extends State<ImportTablePage> {
                             });
                             break;
                           case 200:
-                            debugPrint(courseTable?.statusCode.toString());
+                            if (courseTable.data == null) {
+                              showDialog(context: context, builder: (context) {
+                                return AlertDialog(
+                                  title: const Text("Oops"),
+                                  content: const Text(
+                                    "Everything alright but the server return a empty course table\n"
+                                    "Check if you choose wrong semester\n"
+                                    "Or it can be server side error as well"
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () => {
+                                        Navigator.of(context).pop()
+                                      },
+                                      child: const Text("OK"),
+                                    )
+                                  ],
+                                );
+                              });
+                            }
+                            debugPrint(courseTable.statusCode.toString());
                             break;
                           default:
                             showDialog(context: context, builder: (context) {
@@ -218,7 +216,7 @@ class LoadingOverlay extends StatelessWidget {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: const [
-        CircularProgressIndicator(),
+        CircularProgressIndicator(backgroundColor: Colors.white,),
         SizedBox(height: 12),
         Text(
           'Loading...',
