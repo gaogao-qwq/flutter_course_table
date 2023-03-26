@@ -1,16 +1,5 @@
 # flutter_course_table_demo
 
-A Flutter course table demo
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+It's just a demo app for now,
+you need to build the API server in this [repo](https://github.com/gaogao-qwq/go_course_table_crawler_server),
+or you can just make your own API server whatever language you want to build with.
