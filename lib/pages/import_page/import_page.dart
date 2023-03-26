@@ -114,7 +114,30 @@ class _ImportTablePageState extends State<ImportTablePage> {
                         });
 
                         // 登陆验证
-                        if (!await authorizer(username, password)) {
+                        try {
+                          if (!await authorizer(username, password)) {
+                            if (!mounted) return;
+                            if (_isLoaderVisible) {
+                              context.loaderOverlay.hide();
+                            }
+                            setState(() {
+                              _isLoaderVisible = context.loaderOverlay.visible;
+                            });
+                            showDialog(context: context, builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Oops"),
+                                content: const Text("Authorization failed"),
+                                actions: <Widget>[
+                                  TextButton(
+                                      onPressed: () => {Navigator.of(context).pop()},
+                                      child: const Text("OK")
+                                  )
+                                ],
+                              );
+                            });
+                            return;
+                          }
+                        } catch(e) {
                           if (!mounted) return;
                           if (_isLoaderVisible) {
                             context.loaderOverlay.hide();
@@ -125,17 +148,18 @@ class _ImportTablePageState extends State<ImportTablePage> {
                           showDialog(context: context, builder: (context) {
                             return AlertDialog(
                               title: const Text("Oops"),
-                              content: const Text("Authorization failed"),
+                              content: Text("$e occurred"),
                               actions: <Widget>[
                                 TextButton(
-                                  onPressed: () => {Navigator.of(context).pop()},
-                                  child: const Text("OK")
+                                    onPressed: () => {Navigator.of(context).pop()},
+                                    child: const Text("OK")
                                 )
                               ],
                             );
                           });
                           return;
                         }
+
 
                         // 获取 SemesterId 表
                         List<SemesterInfo>? semesterList;
