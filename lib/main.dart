@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:loader_overlay/loader_overlay.dart';
 
-import 'home_page.dart';
+import 'package:flutter_course_table_demo/pages/home_page/home_page.dart';
 
 Future main() async{
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:loader_overlay/loader_overlay.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'import_page.dart';
+import '../import_page/import_page.dart';
 
 class CourseTableHomePage extends StatelessWidget {
   const CourseTableHomePage({super.key});
@@ -46,6 +46,19 @@ class CourseTableHomePage extends StatelessWidget {
               },
             ),
           ],
+        ),
+      ),
+      body: Scaffold(
+        body: ElevatedButton(
+          onPressed: () async {
+            final prefs = await SharedPreferences.getInstance();
+            List<String>? courseTableJsons = prefs.getStringList('courseTables');
+            int len = courseTableJsons?.length ?? 0;
+            for (int i = 0; i < len; i++) {
+              debugPrint(courseTableJsons![i]);
+            }
+          },
+          child: const Text("debug"),
         ),
       ),
     );
