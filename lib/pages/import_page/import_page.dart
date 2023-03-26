@@ -15,9 +15,11 @@ class ImportTablePage extends StatefulWidget {
 }
 
 class _ImportTablePageState extends State<ImportTablePage> {
-
   final _formKey = GlobalKey<FormState>();
   bool _isLoaderVisible = false;
+
+  FocusNode? blankNode = FocusNode();
+  FocusNode? passwordTextNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +38,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
                 child: TextFormField(
+                  autofocus: true,
                   decoration: const InputDecoration(
                     icon: Icon(Icons.person),
                     border: UnderlineInputBorder(),
@@ -52,11 +55,16 @@ class _ImportTablePageState extends State<ImportTablePage> {
                     }
                     return null;
                   },
+                  textInputAction: TextInputAction.next,
+                  onEditingComplete: () {
+                    FocusScope.of(context).requestFocus(passwordTextNode);
+                  },
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
                 child: TextFormField(
+                  focusNode: passwordTextNode,
                   decoration: const InputDecoration(
                     icon: Icon(Icons.lock),
                     border: UnderlineInputBorder(),
@@ -79,23 +87,26 @@ class _ImportTablePageState extends State<ImportTablePage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
+                    padding: const EdgeInsets.all(10),
                     child: ElevatedButton(
                       onPressed: () {
+                        FocusScope.of(context).requestFocus(blankNode);
                         Navigator.pop(context);
                       },
                       child: const Text('Back'),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
+                    padding: const EdgeInsets.all(10),
                     child: ElevatedButton(
                       onPressed: () async {
                         if (!_formKey.currentState!.validate()) {
                           return;
                         }
+
+                        FocusScope.of(context).requestFocus(blankNode);
 
                         context.loaderOverlay.show(widget: const LoadingOverlay());
                         setState(() {
@@ -211,7 +222,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                           _isLoaderVisible = context.loaderOverlay.visible;
                         });
 
-
+                        // TODO: Import course table implementation
 
                         if (_isLoaderVisible) {
                           context.loaderOverlay.hide();
