@@ -5,14 +5,14 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 class CourseTable {
-  final String? jsonString;
+  final String jsonString;
   final int? row;
   final int? col;
   final int? week;
   final List<CourseInfo>? data;
 
   const CourseTable({
-    this.jsonString,
+    required this.jsonString,
     this.row,
     this.col,
     this.week,
@@ -113,12 +113,12 @@ Future<List<SemesterInfo>> parseSemesterInfo(Uint8List responseBody) async {
   return json.map<SemesterInfo>((json) => SemesterInfo.fromJson(json)).toList();
 }
 
-Future<CourseTable?> fetchCourseTable(String? username, String? password, String? sessionId) async {
+Future<CourseTable?> fetchCourseTable(String? username, String? password, String? semesterId) async {
   http.Response response = await http.get(
     Uri.parse('http://localhost:56789/course-table'),
     headers: {
       HttpHeaders.authorizationHeader: 'Basic ${utf8.fuse(base64).encode('$username:$password')}',
-      'sessionId': '$sessionId',
+      'semesterId': '$semesterId',
     },
   );
 

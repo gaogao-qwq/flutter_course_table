@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table_demo/internal/handlers/response_handlers.dart';
+import 'package:flutter_course_table_demo/pages/import_page/name_table_dialog.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'loading_overlay.dart';
-import 'semester_dropdown_button.dart';
+import 'select_semester_dialog.dart';
 
 
 class ImportTablePage extends StatefulWidget {
@@ -17,13 +18,13 @@ class ImportTablePage extends StatefulWidget {
 class _ImportTablePageState extends State<ImportTablePage> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoaderVisible = false;
-
+  String? username, password;
   FocusNode? blankNode = FocusNode();
   FocusNode? passwordTextNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
-    String? username, password;
+
     return GlobalLoaderOverlay(
       child: Scaffold(
         appBar: AppBar(
@@ -46,13 +47,9 @@ class _ImportTablePageState extends State<ImportTablePage> {
                   ),
                   maxLength: 30,
                   autocorrect: false,
-                  onChanged: (value) {
-                    username = value;
-                  },
+                  onChanged: (value) { setState(() { username = value; }); },
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your username';
-                    }
+                    if (value == null || value.isEmpty) return 'Please enter your account';
                     return null;
                   },
                   textInputAction: TextInputAction.next,
@@ -73,13 +70,9 @@ class _ImportTablePageState extends State<ImportTablePage> {
                   maxLength: 30,
                   obscureText: true,
                   autocorrect: false,
-                  onChanged: (value) {
-                    password = value;
-                  },
+                  onChanged: (value) { setState(() { password = value; }); },
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
+                    if (value == null || value.isEmpty) return 'Please enter your password';
                     return null;
                   },
                 ),
@@ -102,27 +95,21 @@ class _ImportTablePageState extends State<ImportTablePage> {
                     padding: const EdgeInsets.all(10),
                     child: ElevatedButton(
                       onPressed: () async {
-                        if (!_formKey.currentState!.validate()) {
-                          return;
-                        }
-
+                        // 验证表单
+                        if (!_formKey.currentState!.validate()) return;
+                        // 聚焦至空白 Node
                         FocusScope.of(context).requestFocus(blankNode);
 
-                        context.loaderOverlay.show(widget: const LoadingOverlay());
-                        setState(() {
-                          _isLoaderVisible = context.loaderOverlay.visible;
-                        });
+                        // Start importing...
+                        context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Logging...',));
+                        setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
 
                         // 登陆验证
                         try {
                           if (!await authorizer(username, password)) {
                             if (!mounted) return;
-                            if (_isLoaderVisible) {
-                              context.loaderOverlay.hide();
-                            }
-                            setState(() {
-                              _isLoaderVisible = context.loaderOverlay.visible;
-                            });
+                            if (_isLoaderVisible) context.loaderOverlay.hide();
+                            setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
                             showDialog(context: context, builder: (context) {
                               return AlertDialog(
                                 title: const Text("Oops"),
@@ -139,16 +126,12 @@ class _ImportTablePageState extends State<ImportTablePage> {
                           }
                         } catch(e) {
                           if (!mounted) return;
-                          if (_isLoaderVisible) {
-                            context.loaderOverlay.hide();
-                          }
-                          setState(() {
-                            _isLoaderVisible = context.loaderOverlay.visible;
-                          });
+                          if (_isLoaderVisible) context.loaderOverlay.hide();
+                          setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
                           showDialog(context: context, builder: (context) {
                             return AlertDialog(
                               title: const Text("Oops"),
-                              content: Text("$e occurred"),
+                              content: Text("Error occurred: $e"),
                               actions: <Widget>[
                                 TextButton(
                                     onPressed: () => {Navigator.of(context).pop()},
@@ -159,51 +142,19 @@ class _ImportTablePageState extends State<ImportTablePage> {
                           });
                           return;
                         }
-
 
                         // 获取 SemesterId 表
                         List<SemesterInfo>? semesterList;
                         try {
                           semesterList = await fetchSemesterList(username, password);
-                        } on NoSuchMethodError {
-                          if (!mounted) return;
-                          if (_isLoaderVisible) {
-                            context.loaderOverlay.hide();
-                          }
-                          setState(() {
-                            _isLoaderVisible = context.loaderOverlay.visible;
-                          });
-                          showDialog(context: context, builder: (context) {
-                            return AlertDialog(
-                              title: const Text("Oops"),
-                              content: const Text(
-                                "Everything alright but the server return a wrong semester list\n"
-                                "Check if you choose wrong semester\n"
-                                "Or it can be server side error as well"
-                              ),
-                              actions: <Widget>[
-                                TextButton(
-                                  onPressed: () => {
-                                    Navigator.of(context).pop()
-                                  },
-                                  child: const Text("OK"),
-                                )
-                              ],
-                            );
-                          });
-                          return;
                         } catch(e) {
                           if (!mounted) return;
-                          if (_isLoaderVisible) {
-                            context.loaderOverlay.hide();
-                          }
-                          setState(() {
-                            _isLoaderVisible = context.loaderOverlay.visible;
-                          });
+                          if (_isLoaderVisible) context.loaderOverlay.hide();
+                          setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
                           showDialog(context: context, builder: (context) {
                             return AlertDialog(
                               title: const Text("Oops"),
-                              content: Text("$e occurred"),
+                              content: Text("Error occurred: $e"),
                               actions: <Widget>[
                                 TextButton(
                                     onPressed: () => {Navigator.of(context).pop()},
@@ -216,51 +167,170 @@ class _ImportTablePageState extends State<ImportTablePage> {
                         }
 
                         if (!mounted) return;
-                        if (_isLoaderVisible) {
-                          context.loaderOverlay.hide();
+                        if (_isLoaderVisible) context.loaderOverlay.hide();
+                        setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                        // End logging...
+
+                        if (semesterList == null) {
+                          if (!mounted) return;
+                          showDialog(context: context, builder: (context) {
+                            return AlertDialog(
+                              title: const Text("Oops"),
+                              content: const Text(
+                                "Everything alright but the server return a empty semester list\n"
+                                "Check if the network is down\n"
+                                "Or it can be server side error as well"
+                              ),
+                              actions: <Widget>[
+                                TextButton(
+                                    onPressed: () => {Navigator.of(context).pop()},
+                                    child: const Text("OK")
+                                )
+                              ],
+                            );
+                          });
+                          return;
                         }
-                        setState(() {
-                          _isLoaderVisible = context.loaderOverlay.visible;
-                        });
 
                         // 等待用户选择要导入的学期
                         final semesterId = await Navigator.push(context, DialogRoute(context: context, builder: (context) {
-                          return SimpleDialog(
-                            title: const Text("Choose semester"),
-                            children: <Widget>[
-                              Column(
-                                children: <Widget>[
-                                  SemesterDropdownButton(semesterList: semesterList ?? [],),
-                                ],
-                              ),
-                            ],
-                          );
+                          return SelectSemesterDialog(semesterList: semesterList!);
                         }));
+                        if (semesterId == null) {
+                          if (!mounted) return;
+                          if (_isLoaderVisible) context.loaderOverlay.hide();
+                          setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                          showDialog(context: context, builder: (context) {
+                            return AlertDialog(
+                              title: const Text("Note"),
+                              content: const Text("Nothing was imported due to user cancellation"),
+                              actions: <Widget>[
+                                TextButton(
+                                    onPressed: () => {Navigator.of(context).pop()},
+                                    child: const Text("OK")
+                                )
+                              ],
+                            );
+                          });
+                          return;
+                        }
 
-                        debugPrint(semesterId);
+                        // Start importing...
+                        if (!mounted) return;
+                        context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Importing...',));
+                        setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+
+                        CourseTable? courseTable;
+                        try {
+                          courseTable = await fetchCourseTable(username, password, semesterId);
+                        } catch(e) {
+                          if (!mounted) return;
+                          if (_isLoaderVisible) context.loaderOverlay.hide();
+                          setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                          showDialog(context: context, builder: (context) {
+                            return AlertDialog(
+                              title: const Text("Oops"),
+                              content: Text("Error occurred: $e"),
+                              actions: <Widget>[
+                                TextButton(
+                                    onPressed: () => {Navigator.of(context).pop()},
+                                    child: const Text("OK")
+                                )
+                              ],
+                            );
+                          });
+                          return;
+                        }
 
                         if (!mounted) return;
+                        if (_isLoaderVisible) context.loaderOverlay.hide();
+                        setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                        // End importing...
 
-                        context.loaderOverlay.show(widget: const LoadingOverlay());
-                        setState(() {
-                          _isLoaderVisible = context.loaderOverlay.visible;
-                        });
-
-                        // TODO: Import course table implementation
-
-                        if (_isLoaderVisible) {
-                          context.loaderOverlay.hide();
+                        if (courseTable == null) {
+                          if (!mounted) return;
+                          showDialog(context: context, builder: (context) {
+                            return AlertDialog(
+                              title: const Text("Oops"),
+                              content: const Text(
+                                  "Everything alright but the server return a empty course table list\n"
+                                  "Check if you choose wrong semester\n"
+                                  "Or it can be server side error as well"
+                              ),
+                              actions: <Widget>[
+                                TextButton(
+                                    onPressed: () => {Navigator.of(context).pop()},
+                                    child: const Text("OK")
+                                )
+                              ],
+                            );
+                          });
+                          return;
                         }
-                        setState(() {
-                          _isLoaderVisible = context.loaderOverlay.visible;
-                        });
 
-                        // final prefs = await SharedPreferences.getInstance();
-                        // List<String>? courseTableJsons = prefs.getStringList('courseTables');
-                        // if (courseTableJsons == null) {
-                        //   await prefs.setStringList('courseTables', [courseTable.jsonString ?? ""]);
-                        // }
+                        // Start saving...
+                        context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Saving...',));
+                        setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
 
+                        final prefs = await SharedPreferences.getInstance();
+
+                        if (!mounted) return;
+                        String? courseTableName = await Navigator.push(context, DialogRoute(context: context, builder: (context) {
+                          String initName = "";
+                          for (int i = 0; i < semesterList!.length; i++) {
+                            if (semesterId == semesterList[i].semesterId1) {
+                              initName = "${semesterList[i].value}学年第1学期课表";
+                              break;
+                            }
+                            if (semesterId == semesterList[i].semesterId2) {
+                              initName = "${semesterList[i].value}学年第2学期课表";
+                              break;
+                            }
+                          }
+                          return NameTableDialog(initName: initName, prefs: prefs);
+                        }));
+                        if (courseTableName == null) {
+                          if (!mounted) return;
+                          if (_isLoaderVisible) context.loaderOverlay.hide();
+                          setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                          showDialog(context: context, builder: (context) {
+                            return AlertDialog(
+                              title: const Text("Note"),
+                              content: const Text("Nothing was imported due to user cancellation"),
+                              actions: <Widget>[
+                                TextButton(
+                                    onPressed: () => {Navigator.of(context).pop()},
+                                    child: const Text("OK")
+                                )
+                              ],
+                            );
+                          });
+                          return;
+                        }
+                        if (!await prefs.setString(courseTableName, courseTable.jsonString)) {
+                          if (!mounted) return;
+                          if (_isLoaderVisible) context.loaderOverlay.hide();
+                          setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                          showDialog(context: context, builder: (context) {
+                            return AlertDialog(
+                              title: const Text("Oops"),
+                              content: const Text(
+                                  "Saving course table to device failed, check if your device has enough spaces"
+                              ),
+                              actions: <Widget>[
+                                TextButton(
+                                    onPressed: () => {Navigator.of(context).pop()},
+                                    child: const Text("OK")
+                                )
+                              ],
+                            );
+                          });
+                        }
+
+                        if (!mounted) return;
+                        if (_isLoaderVisible) context.loaderOverlay.hide();
+                        setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                        // End saving...
                       },
                       style: const ButtonStyle(
                         backgroundColor: MaterialStatePropertyAll<Color>(Colors.green)
