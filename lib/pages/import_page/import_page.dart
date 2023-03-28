@@ -7,9 +7,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'loading_overlay.dart';
 import 'select_semester_dialog.dart';
 
-
 class ImportTablePage extends StatefulWidget {
-  const ImportTablePage({Key? key}) : super(key: key);
+  final SharedPreferences prefs;
+  const ImportTablePage({
+    super.key,
+    required this.prefs,
+  });
 
   @override
   State<ImportTablePage> createState() => _ImportTablePageState();
@@ -272,8 +275,6 @@ class _ImportTablePageState extends State<ImportTablePage> {
                         context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Saving...',));
                         setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
 
-                        final prefs = await SharedPreferences.getInstance();
-
                         if (!mounted) return;
                         String? courseTableName = await Navigator.push(context, DialogRoute(context: context, builder: (context) {
                           String initName = "";
@@ -287,7 +288,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               break;
                             }
                           }
-                          return NameTableDialog(initName: initName, prefs: prefs);
+                          return NameTableDialog(initName: initName, prefs: widget.prefs);
                         }));
                         if (courseTableName == null) {
                           if (!mounted) return;
@@ -307,7 +308,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                           });
                           return;
                         }
-                        if (!await prefs.setString(courseTableName, courseTable.jsonString)) {
+                        if (!await widget.prefs.setString(courseTableName, courseTable.jsonString)) {
                           if (!mounted) return;
                           if (_isLoaderVisible) context.loaderOverlay.hide();
                           setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
@@ -331,6 +332,8 @@ class _ImportTablePageState extends State<ImportTablePage> {
                         if (_isLoaderVisible) context.loaderOverlay.hide();
                         setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
                         // End saving...
+
+                        Navigator.pop(context, courseTableName);
                       },
                       style: const ButtonStyle(
                         backgroundColor: MaterialStatePropertyAll<Color>(Colors.green)

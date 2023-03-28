@@ -1,10 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table_demo/pages/home_page/course_table_widget_builder.dart';
+import 'package:flutter_course_table_demo/pages/import_page/import_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../import_page/import_page.dart';
+class CourseTableHomePage extends StatefulWidget {
+  final SharedPreferences prefs;
+  const CourseTableHomePage({
+    super.key,
+    required this.prefs,
+  });
 
-class CourseTableHomePage extends StatelessWidget {
-  const CourseTableHomePage({super.key});
+  @override
+  State<CourseTableHomePage> createState() => _CourseTableHomePageState();
+}
+
+class _CourseTableHomePageState extends State<CourseTableHomePage> {
+  String? currCourseTableName;
+
+  @override
+  void initState() {
+    currCourseTableName = "0";
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,14 +41,17 @@ class CourseTableHomePage extends StatelessWidget {
             ),
             ListTile(
               title: const Text('Import Table'),
+              onTap: () async {
+                Navigator.pop(context);
+                final tmp = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImportTablePage(prefs: widget.prefs)));
+                setState(() { currCourseTableName = tmp; });
+              },
+            ),
+            ListTile(
+              title: const Text("Change Table"),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ImportTablePage(),
-                  ),
-                );
+                setState(() { currCourseTableName = ""; });
               },
             ),
             ListTile(
@@ -48,19 +68,7 @@ class CourseTableHomePage extends StatelessWidget {
           ],
         ),
       ),
-      body: Scaffold(
-        body: ElevatedButton(
-          onPressed: () async {
-            final prefs = await SharedPreferences.getInstance();
-            List<String>? courseTableJsons = prefs.getStringList('courseTables');
-            int len = courseTableJsons?.length ?? 0;
-            for (int i = 0; i < len; i++) {
-              debugPrint(courseTableJsons![i]);
-            }
-          },
-          child: const Text("debug"),
-        ),
-      ),
+      body: CourseTableWidget(courseTableName: currCourseTableName!, prefs: widget.prefs),
     );
   }
 }
