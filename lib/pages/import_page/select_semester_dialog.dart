@@ -39,9 +39,9 @@ class _SelectSemesterDialogState extends State<SelectSemesterDialog> {
                   items: getYearItems(),
                   value: selectedYearIndex.toString(),
                   onChanged: (value) {
-                    setState(() {
-                      selectedYearIndex = (value ?? 0) as int?;
-                    });
+                    int? year = int.parse(value ?? "-1");
+                    setState(() { selectedYearIndex = year == -1 ? selectedYearIndex : year; });
+                    selectedSemester = widget.semesterList[selectedYearIndex!].semesterId1;
                   },
                 ),
                 DropdownButton(
@@ -80,8 +80,8 @@ class _SelectSemesterDialogState extends State<SelectSemesterDialog> {
 
   List<DropdownMenuItem<String>> getSemesterItems() {
     var items = <DropdownMenuItem<String>>[];
-    items.add(DropdownMenuItem(value: widget.semesterList[selectedYearIndex!].semesterId1, child: const Text("第1学期"),));
-    items.add(DropdownMenuItem(value: widget.semesterList[selectedYearIndex!].semesterId2, child: const Text("第2学期"),));
+    items.add(DropdownMenuItem(value: widget.semesterList[selectedYearIndex!].semesterId1, child: const Text("第1学期")));
+    items.add(DropdownMenuItem(value: widget.semesterList[selectedYearIndex!].semesterId2, child: const Text("第2学期")));
     return items;
   }
 }
