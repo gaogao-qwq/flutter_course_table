@@ -39,6 +39,8 @@ dependencies:
   loader_overlay: ^2.1.0
   flutter_spinkit: ^5.1.0
   shared_preferences: ^2.0.18
+  flutter_screenutil: ^5.7.0
+  spannable_grid: ^0.3.0
 
 
 dev_dependencies:
