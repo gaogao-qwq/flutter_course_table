@@ -9,7 +9,7 @@ class CourseTable {
   final int? row;
   final int? col;
   final int? week;
-  final List<CourseInfo>? data;
+  final List<List<CourseInfo>>? data;
 
   const CourseTable({
     required this.jsonString,
@@ -80,7 +80,7 @@ class SemesterInfo {
 
 Future<bool> authorizer(String? username, String? password) async {
   http.Response response = await http.get(
-    Uri.parse('http://localhost:56789/login'),
+    Uri.parse('http://192.168.50.159:56789/login'),
     headers: {
       HttpHeaders.authorizationHeader: 'Basic ${utf8.fuse(base64).encode('$username:$password')}'
     },
@@ -93,7 +93,7 @@ Future<bool> authorizer(String? username, String? password) async {
 
 Future<List<SemesterInfo>?> fetchSemesterList(String? username, String? password) async {
   http.Response response = await http.get(
-    Uri.parse('http://localhost:56789/semester-list'),
+    Uri.parse('http://192.168.50.159:56789/semester-list'),
     headers: {
       HttpHeaders.authorizationHeader: 'Basic ${utf8.fuse(base64).encode('$username:$password')}'
     },
@@ -115,7 +115,7 @@ Future<List<SemesterInfo>> parseSemesterInfo(Uint8List responseBody) async {
 
 Future<CourseTable?> fetchCourseTable(String? username, String? password, String? semesterId) async {
   http.Response response = await http.get(
-    Uri.parse('http://localhost:56789/course-table'),
+    Uri.parse('http://192.168.50.159:56789/course-table'),
     headers: {
       HttpHeaders.authorizationHeader: 'Basic ${utf8.fuse(base64).encode('$username:$password')}',
       'semesterId': '$semesterId',
@@ -133,8 +133,15 @@ Future<CourseTable> parseCourseInfo(Uint8List responseBody) async {
   var responseString = const Utf8Decoder().convert(responseBody);
 
   final json = jsonDecode(responseString);
-  final dataJson = json['data'].cast<Map<String, dynamic>>();
-  var data = dataJson.map<CourseInfo>((json) => CourseInfo.fromJson(json)).toList();
+  final List<dynamic> dataJson = json['data'];
+  List<List<CourseInfo>> data = [[]];
+  for (int i = 0; i < dataJson.length; i++) {
+    for (int j = 0; j < dataJson[i].length; j++) {
+      var tmp = CourseInfo.fromJson(dataJson[i][j]);
+      data[i].add(tmp);
+    }
+    if (i != dataJson.length-1) data.add(<CourseInfo>[]);
+  }
   return CourseTable(
     jsonString: responseString,
     row: json['row'],
