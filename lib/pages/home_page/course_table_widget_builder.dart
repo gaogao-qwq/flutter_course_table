@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_course_table_demo/pages/import_page/import_page.dart';
 import 'package:flutter_course_table_demo/internal/handlers/response_handlers.dart';
 import 'package:spannable_grid/spannable_grid.dart';
 
@@ -51,38 +50,50 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
 
   List<Widget> _buildTableList() {
     var json = jsonDecode(widget.prefs.getString(tableName)!);
-    final List<CourseInfo> courseTableData = json['data'].cast<Map<String, dynamic>>().map<CourseInfo>((json) => CourseInfo.fromJson(json)).toList();
+    final List<dynamic> dataJson = json['data'];
+    List<List<CourseInfo>> courseTableData = [[]];
+    for (int i = 0; i < dataJson.length; i++) {
+      for (int j = 0; j < dataJson[i].length; j++) {
+        var tmp = CourseInfo.fromJson(dataJson[i][j]);
+        courseTableData[i].add(tmp);
+      }
+      if (i != dataJson.length-1) courseTableData.add(<CourseInfo>[]);
+    }
     int listLen = json['week'];
     int row = json['row'];
     int col = json['col'];
 
-    List<List<CourseInfo>> courseTableList = List<List<CourseInfo>>.generate(listLen, (_) => []);
+    List<List<List<CourseInfo>>> courseTableList = List<List<List<CourseInfo>>>.generate(listLen, (_) => <List<CourseInfo>>[]);
     for (int i = 0; i < courseTableData.length; i++) {
-      courseTableList[courseTableData[i].weekNum - 1].add(courseTableData[i]);
+      for (int j = 0; j < courseTableData[i].length; j++) {
+        courseTableList[courseTableData[i][j].weekNum - 1].add(courseTableData[i]);
+      }
     }
 
     List<Container> tableList = [];
     for (int i = 0; i < listLen; i++) {
       List<SpannableGridCellData> gridCells = [];
       for (int j = 0; j < courseTableList[i].length; j++) {
-        gridCells.add(SpannableGridCellData(
-          id: "id_${i}_${courseTableList[i][j].sectionBegin}_${courseTableList[i][j].dateNum}",
-          row: courseTableList[i][j].sectionBegin,
-          column: courseTableList[i][j].dateNum,
-          rowSpan: courseTableList[i][j].sectionLength,
-          child: Container(
-            padding: const EdgeInsets.all(2),
-            child: Card(
-              child: Center(
-                child: Text("${courseTableList[i][j].courseName}, ${courseTableList[i][j].locationName}")
-              ),
-            ),
-          )
-        ));
+        for (int k = 0; k < courseTableList[i][j].length; k++) {
+          gridCells.add(SpannableGridCellData(
+              id: "id_${i}_${courseTableList[i][j][k].sectionBegin}_${courseTableList[i][j][k].dateNum}",
+              row: courseTableList[i][j][k].sectionBegin,
+              column: courseTableList[i][j][k].dateNum,
+              rowSpan: courseTableList[i][j][k].sectionLength,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                child: Card(
+                  child: Center(
+                      child: Text("${courseTableList[i][j][k].courseName}, ${courseTableList[i][j][k].locationName}")
+                  ),
+                ),
+              )
+          ));
+        }
       }
       tableList.add(
         Container(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(2),
           child: SpannableGrid(
             cells: gridCells,
             rows: row,
@@ -91,41 +102,6 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
         )
       );
     }
-
     return tableList;
   }
-
-  // var emptyPlaceholder = Center(
-  //   child: Column(
-  //     mainAxisAlignment: MainAxisAlignment.center,
-  //     crossAxisAlignment: CrossAxisAlignment.center,
-  //     children: <Widget>[
-  //       const Padding(
-  //         padding: EdgeInsets.all(10),
-  //         child: Text("There is nothing here, import a course table first"),
-  //       ),
-  //       ElevatedButton(
-  //         onPressed: () async {
-  //           final tmp = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImportTablePage(prefs: widget.prefs)));
-  //           setState(() { widget.courseTableName = tmp; });
-  //         },
-  //         child: const Text("Import"),
-  //       ),
-  //     ],
-  //   )
-  // );
-
-  // final jsonString = widget.prefs.getString(nameKey!);
-  // var json = jsonDecode(jsonString!);
-  // final courseTableData = json['data'].cast<Map<String, dynamic>>().map<CourseInfo>((json) => CourseInfo.fromJson(json)).toList();
-  // var table = <TableRow>[];
-  // for (int r = 0; r < json['row']; r++) {
-  //   var list = <TableCell>[];
-  //   for (int c = 0; c < json['col']; c++) {
-  //     list.add(TableCell(child: Text("row:${r+1} col:${c+1}")));
-  //   }
-  //   table.add(TableRow(children: list));
-  // }
-  // var courseTable = Table(border: TableBorder.all(), children: table);
-  // return courseTable;
 }
