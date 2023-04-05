@@ -24,9 +24,8 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> {
 
   @override
   void initState() {
-    // currCourseTableName = "2022-2023学年第2学期课表";
-    currCourseTableName = "";
     super.initState();
+    currCourseTableName = widget.prefs.getString("currCourseTableName") ?? "";
   }
 
   @override
@@ -44,7 +43,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> {
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: Color(0xff6750a4),
               ),
               child: Text('Flutter Course Table Menu'),
             ),
@@ -54,7 +53,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> {
                 Navigator.pop(context);
                 final tmp = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImportTablePage(prefs: widget.prefs)));
                 if (tmp == null || tmp.isEmpty) return;
-                setState(() { currCourseTableName = tmp; });
+                changeCurrentCourseTable(tmp);
               },
             ),
             ListTile(
@@ -83,7 +82,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> {
                   DialogRoute(context: context, builder: (context) => ChangeCurrentCourseTable(prefs: widget.prefs, currCourseTableName: currCourseTableName))
                 );
                 if (tmp == null) return;
-                if (currCourseTableName != tmp) { setState(() { currCourseTableName = tmp; }); }
+                if (currCourseTableName != tmp) changeCurrentCourseTable(tmp);
               },
             ),
             ListTile(
@@ -112,7 +111,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> {
                   DialogRoute(context: context, builder: (context) => DeleteStoredCourseTable(prefs: widget.prefs, currCourseTableName: currCourseTableName))
                 );
                 if (tmp == null) return;
-                if (currCourseTableName == tmp) setState(() { currCourseTableName = ""; });
+                if (currCourseTableName == tmp) changeCurrentCourseTable(null);
                 widget.prefs.remove(tmp);
               },
             ),
@@ -144,7 +143,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> {
                     onPressed: () async {
                       final tmp = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImportTablePage(prefs: widget.prefs)));
                       if (tmp == null || tmp.isEmpty) return;
-                      setState(() { currCourseTableName = tmp; });
+                      changeCurrentCourseTable(tmp);
                     },
                     child: const Text("Import"),
                   ),
@@ -153,6 +152,15 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> {
             )
           : CourseTableWidget(courseTableName: currCourseTableName, courseTableRow: 12, prefs: widget.prefs),
     );
+  }
+
+  void changeCurrentCourseTable(String? name) {
+    if (name == null || name.isEmpty) {
+      setState(() { currCourseTableName = ""; });
+      return;
+    }
+    setState(() { currCourseTableName = name; });
+    widget.prefs.setString("currCourseTableName", name);
   }
 }
 
