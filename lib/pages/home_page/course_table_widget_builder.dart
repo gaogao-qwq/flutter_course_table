@@ -5,8 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_course_table_demo/internal/handlers/response_handlers.dart';
 import 'package:spannable_grid/spannable_grid.dart';
 
-// TODO: implement course table widget
-
 class CourseTableWidget extends StatefulWidget {
   final String courseTableName;
   final int courseTableRow;
@@ -65,31 +63,38 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
 
     List<List<List<CourseInfo>>> courseTableList = List<List<List<CourseInfo>>>.generate(listLen, (_) => <List<CourseInfo>>[]);
     for (int i = 0; i < courseTableData.length; i++) {
-      for (int j = 0; j < courseTableData[i].length; j++) {
-        courseTableList[courseTableData[i][j].weekNum - 1].add(courseTableData[i]);
-      }
+        courseTableList[courseTableData[i][0].weekNum - 1].add(courseTableData[i]);
     }
 
     List<Container> tableList = [];
     for (int i = 0; i < listLen; i++) {
       List<SpannableGridCellData> gridCells = [];
       for (int j = 0; j < courseTableList[i].length; j++) {
+        String id = "id";
+        String text = "";
+        int row = courseTableList[i][j][0].sectionBegin;
+        int column = courseTableList[i][j][0].dateNum;
+        int rowSpan = courseTableList[i][j][0].sectionLength;
         for (int k = 0; k < courseTableList[i][j].length; k++) {
-          gridCells.add(SpannableGridCellData(
-              id: "id_${i}_${courseTableList[i][j][k].sectionBegin}_${courseTableList[i][j][k].dateNum}",
-              row: courseTableList[i][j][k].sectionBegin,
-              column: courseTableList[i][j][k].dateNum,
-              rowSpan: courseTableList[i][j][k].sectionLength,
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                child: Card(
-                  child: Center(
-                      child: Text("${courseTableList[i][j][k].courseName}, ${courseTableList[i][j][k].locationName}")
-                  ),
-                ),
-              )
-          ));
+          id += "_${i}_${courseTableList[i][j][k].dateNum}_${courseTableList[i][j][k].sectionBegin}";
+          text += "${courseTableList[i][j][k].courseName}, ${courseTableList[i][j][k].locationName}";
         }
+        gridCells.add(SpannableGridCellData(
+            id: id,
+            row: row,
+            column: column,
+            rowSpan: rowSpan,
+            child: Container(
+              // padding: const EdgeInsets.all(2),
+              child: Card(
+                child: Center(
+                    child: Text(text,
+                      style: const TextStyle(fontSize: 8, fontWeight: FontWeight.normal),
+                    )
+                ),
+              ),
+            )
+        ));
       }
       tableList.add(
         Container(
