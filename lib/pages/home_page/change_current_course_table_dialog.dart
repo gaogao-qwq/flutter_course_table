@@ -27,7 +27,7 @@ class _ChangeCurrentCourseTableState extends State<ChangeCurrentCourseTable> {
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
-      title: const Text("Delete selected course table"),
+      title: const Text("Change selected course table"),
       children: [
         Container(
           padding: const EdgeInsets.all(10),
