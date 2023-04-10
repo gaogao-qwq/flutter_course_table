@@ -55,7 +55,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
 
   List<Widget> _buildTableList() {
     var json = jsonDecode(widget.prefs.getString(tableName)!);
-    final List<dynamic> dataJson = json['data'];
+    final List<dynamic> dataJson = jsonDecode(json['data']);
     List<List<CourseInfo>> courseTableData = [[]];
     for (int i = 0; i < dataJson.length; i++) {
       for (int j = 0; j < dataJson[i].length; j++) {
@@ -92,7 +92,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
             column: column,
             rowSpan: rowSpan,
             child: Card(
-              color: const Color.fromRGBO(108, 80, 164, 1.0),
+              color: const Color.fromRGBO(177, 134, 218, 0.6),
               child: Center(
                   child: Container(
                     padding: const EdgeInsets.all(2),

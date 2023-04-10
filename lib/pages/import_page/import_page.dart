@@ -296,7 +296,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                                 TextButton(
                                   onPressed: () => {Navigator.of(context).pop()},
                                   child: const Text("OK",
-                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                    style: TextStyle(fontSize: 20)),
                                 )
                               ],
                             );
@@ -336,7 +336,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                                 TextButton(
                                   onPressed: () => {Navigator.of(context).pop()},
                                   child: const Text("OK",
-                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
+                                    style: TextStyle(fontSize: 20))
                                 )
                               ],
                             );
@@ -344,7 +344,30 @@ class _ImportTablePageState extends State<ImportTablePage> {
                           return;
                         }
 
-                        String jsonString = jsonEncode(courseTable);
+                        String jsonString;
+                        try {
+                          jsonString = jsonEncode(courseTable, toEncodable: (Object? v) => v is CourseTable
+                            ? CourseTable.toJson(v)
+                            : throw UnsupportedError('Cannot convert to JSON: $v'));
+                        } catch (e) {
+                          if(!mounted) return;
+                          showDialog(context: context, builder: (context) {
+                            return AlertDialog(
+                              title: const Text("Oops"),
+                              content: Text("$e"),
+                              actions: <Widget>[
+                                TextButton(
+                                    onPressed: () => {Navigator.of(context).pop()},
+                                    child: const Text("OK",
+                                        style: TextStyle(fontSize: 20))
+                                )
+                              ],
+                            );
+                          });
+                          if (_isLoaderVisible) context.loaderOverlay.hide();
+                          setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                          return;
+                        }
 
                         // 存入 shared preferences
                         if (!await widget.prefs.setString(courseTableName, jsonString)) {
@@ -361,7 +384,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                                 TextButton(
                                     onPressed: () => {Navigator.of(context).pop()},
                                     child: const Text("OK",
-                                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
+                                      style: TextStyle(fontSize: 20))
                                 )
                               ],
                             );

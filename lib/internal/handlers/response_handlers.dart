@@ -19,9 +19,15 @@ class CourseTable {
     this.data,
   });
 
-  static Map<String, dynamic> toJson(CourseTable v) {
-    return {'firstWeekDate': v.firstWeekDate, 'row': v.row, 'col': v.col, 'week':v.week, 'data':v.data};
-  }
+  static Map<String, dynamic> toJson(CourseTable v) => {
+    'firstWeekDate': v.firstWeekDate,
+    'row': v.row,
+    'col': v.col,
+    'week': v.week,
+    'data': jsonEncode(v.data, toEncodable: (Object? v) => v is CourseInfo
+      ? CourseInfo.toJson(v)
+      : throw UnsupportedError('Cannot convert to JSON: $v'))
+  };
 }
 
 class CourseInfo {
