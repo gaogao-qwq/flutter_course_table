@@ -50,7 +50,7 @@ class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
           ),
         ),
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(16),
           child: DropdownButton(
             icon: const Icon(Icons.arrow_downward),
             elevation: 16,
@@ -68,6 +68,7 @@ class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
         Container(
           padding: const EdgeInsets.all(8),
           child: Row(
+            mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               ElevatedButton(
