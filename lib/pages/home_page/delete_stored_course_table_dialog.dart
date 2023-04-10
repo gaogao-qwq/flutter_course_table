@@ -36,6 +36,13 @@ class _DeleteStoredCourseTableState extends State<DeleteStoredCourseTable> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               DropdownButton(
+                  icon: const Icon(Icons.arrow_downward),
+                  elevation: 16,
+                  style: const TextStyle(color: Colors.deepPurple),
+                  underline: Container(
+                    height: 2,
+                    color: Colors.deepPurpleAccent,
+                  ),
                 items: getStoredCourseTableItems(widget.prefs),
                 value: selectedCourseTableName,
                 onChanged: (value) { setState(() { selectedCourseTableName = value ?? ""; }); }

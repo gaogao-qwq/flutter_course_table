@@ -22,13 +22,14 @@ class CourseTableWidget extends StatefulWidget {
 }
 
 class _CourseTableWidgetState extends State<CourseTableWidget> {
-  PageController pageController = PageController();
+  late PageController pageController;
   late int tableRow;
   late String tableName;
 
   @override
   void initState() {
     super.initState();
+    pageController = PageController(initialPage: getInitialPage());
     tableRow = widget.courseTableRow;
     tableName = widget.courseTableName;
   }
@@ -36,6 +37,12 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
   @override
   Widget build(BuildContext context) {
     return _buildPageView();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    pageController.dispose();
   }
 
   Widget _buildPageView() {
@@ -84,14 +91,15 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
             row: row,
             column: column,
             rowSpan: rowSpan,
-            child: Container(
-              // padding: const EdgeInsets.all(2),
-              child: Card(
-                child: Center(
-                    child: Text(text,
-                      style: const TextStyle(fontSize: 8, fontWeight: FontWeight.normal),
+            child: Card(
+              color: const Color.fromRGBO(108, 80, 164, 1.0),
+              child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                      child: Text(text,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
                     )
-                ),
+                  ),
               ),
             )
         ));
@@ -108,5 +116,9 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
       );
     }
     return tableList;
+  }
+
+  int getInitialPage() {
+    return 0;
   }
 }

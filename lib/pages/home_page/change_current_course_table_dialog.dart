@@ -3,12 +3,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ChangeCurrentCourseTable extends StatefulWidget {
   final SharedPreferences prefs;
-  final String? currCourseTableName;
+  final String currCourseTableName;
 
   const ChangeCurrentCourseTable({
     super.key,
     required this.prefs,
-    this.currCourseTableName,
+    required this.currCourseTableName,
   });
 
   @override
@@ -16,12 +16,12 @@ class ChangeCurrentCourseTable extends StatefulWidget {
 }
 
 class _ChangeCurrentCourseTableState extends State<ChangeCurrentCourseTable> {
-  late String? selectedCourseTableName;
+  late String selectedCourseTableName;
 
   @override
   void initState() {
     super.initState();
-    selectedCourseTableName = (widget.currCourseTableName == null || widget.currCourseTableName!.isEmpty) ? null : widget.currCourseTableName;
+    selectedCourseTableName = widget.currCourseTableName;
   }
 
   @override
@@ -36,6 +36,15 @@ class _ChangeCurrentCourseTableState extends State<ChangeCurrentCourseTable> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               DropdownButton(
+                  icon: const Icon(Icons.arrow_downward),
+                  elevation: 16,
+                  borderRadius: const BorderRadius.all(Radius.circular(4)),
+
+                  style: const TextStyle(color: Colors.deepPurple),
+                  underline: Container(
+                    height: 2,
+                    color: Colors.deepPurpleAccent,
+                  ),
                 items: getStoredCourseTableItems(widget.prefs),
                 value: selectedCourseTableName,
                 onChanged: (value) { setState(() { selectedCourseTableName = value ?? ""; }); }
@@ -59,11 +68,12 @@ class _ChangeCurrentCourseTableState extends State<ChangeCurrentCourseTable> {
       ],
     );
   }
+
+  List<DropdownMenuItem<String>> getStoredCourseTableItems(SharedPreferences prefs) {
+    List<DropdownMenuItem<String>> items = [];
+    Set<String> keys = prefs.getKeys();
+    for (var element in keys) { items.add(DropdownMenuItem(value: element, child: Text(element))); }
+    return items;
+  }
 }
 
-List<DropdownMenuItem<String>> getStoredCourseTableItems(SharedPreferences prefs) {
-  List<DropdownMenuItem<String>> items = [];
-  Set<String> keys = prefs.getKeys();
-  for (var element in keys) { items.add(DropdownMenuItem(value: element, child: Text(element))); }
-  return items;
-}

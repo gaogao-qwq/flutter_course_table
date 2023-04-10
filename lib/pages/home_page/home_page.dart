@@ -43,7 +43,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> {
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(
-                color: Color(0xff6750a4),
+                color: Colors.deepPurple,
               ),
               child: Text('Flutter Course Table Menu'),
             ),
