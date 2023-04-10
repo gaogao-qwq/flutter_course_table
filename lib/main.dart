@@ -52,12 +52,12 @@ class _CourseTableAppState extends State<CourseTableApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        colorSchemeSeed: const Color(0xff6750a4),
+        colorSchemeSeed: Colors.purpleAccent,
         useMaterial3: true,
         brightness: Brightness.light,
       ),
       darkTheme: ThemeData(
-        colorSchemeSeed: const Color(0xff6750a4),
+        colorSchemeSeed: Colors.deepPurple,
         useMaterial3: true,
         brightness: Brightness.dark,
       ),

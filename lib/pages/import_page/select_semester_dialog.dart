@@ -36,6 +36,14 @@ class _SelectSemesterDialogState extends State<SelectSemesterDialog> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 DropdownButton(
+                  icon: const Icon(Icons.arrow_downward),
+                  elevation: 16,
+                  borderRadius: const BorderRadius.all(Radius.circular(4)),
+                  style: const TextStyle(color: Colors.deepPurple),
+                  underline: Container(
+                    height: 2,
+                    color: Colors.deepPurpleAccent,
+                  ),
                   items: getYearItems(),
                   value: selectedYearIndex.toString(),
                   onChanged: (value) {
@@ -45,6 +53,14 @@ class _SelectSemesterDialogState extends State<SelectSemesterDialog> {
                   },
                 ),
                 DropdownButton(
+                  icon: const Icon(Icons.arrow_downward),
+                  elevation: 16,
+                  borderRadius: const BorderRadius.all(Radius.circular(4)),
+                  style: const TextStyle(color: Colors.deepPurple),
+                  underline: Container(
+                    height: 2,
+                    color: Colors.deepPurpleAccent,
+                  ),
                   items: getSemesterItems(),
                   value: selectedSemester,
                   onChanged: (value) {
