@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table_demo/internal/handlers/response_handlers.dart';
 import 'package:flutter_course_table_demo/pages/import_page/name_table_dialog.dart';
+import 'package:flutter_course_table_demo/pages/import_page/select_first_week_date_dialog.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -91,7 +94,8 @@ class _ImportTablePageState extends State<ImportTablePage> {
                         FocusScope.of(context).requestFocus(blankNode);
                         Navigator.pop(context);
                       },
-                      child: const Text('Back'),
+                      child: const Text('Back',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     ),
                   ),
                   Padding(
@@ -119,8 +123,9 @@ class _ImportTablePageState extends State<ImportTablePage> {
                                 content: const Text("Authorization failed"),
                                 actions: <Widget>[
                                   TextButton(
-                                      onPressed: () => {Navigator.of(context).pop()},
-                                      child: const Text("OK")
+                                    onPressed: () => {Navigator.of(context).pop()},
+                                    child: const Text("OK",
+                                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
                                   )
                                 ],
                               );
@@ -137,8 +142,9 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               content: Text("Error occurred: $e"),
                               actions: <Widget>[
                                 TextButton(
-                                    onPressed: () => {Navigator.of(context).pop()},
-                                    child: const Text("OK")
+                                  onPressed: () => {Navigator.of(context).pop()},
+                                  child: const Text("OK",
+                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
                                 )
                               ],
                             );
@@ -160,8 +166,9 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               content: Text("Error occurred: $e"),
                               actions: <Widget>[
                                 TextButton(
-                                    onPressed: () => {Navigator.of(context).pop()},
-                                    child: const Text("OK")
+                                  onPressed: () => {Navigator.of(context).pop()},
+                                  child: const Text("OK",
+                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
                                 )
                               ],
                             );
@@ -196,10 +203,11 @@ class _ImportTablePageState extends State<ImportTablePage> {
                         }
 
                         // 等待用户选择要导入的学期
-                        final semesterId = await Navigator.push(context, DialogRoute(context: context, builder: (context) {
-                          return SelectSemesterDialog(semesterList: semesterList!);
-                        }));
-                        if (semesterId == null) {
+                        final semesterId = await Navigator.push(context,
+                            DialogRoute(context: context, builder: (context) {
+                              return SelectSemesterDialog(semesterList: semesterList!);
+                            }));
+                        if (semesterId == null || semesterId.isEmpty) {
                           if (!mounted) return;
                           if (_isLoaderVisible) context.loaderOverlay.hide();
                           setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
@@ -218,6 +226,29 @@ class _ImportTablePageState extends State<ImportTablePage> {
                           return;
                         }
 
+                        // 等待用户选择课表第一周日期
+                        if (!mounted) return;
+                        final firstWeekDate = await Navigator.push(context,
+                            DialogRoute(context: context, builder: (context) {
+                              return const FirstWeekDateSelector();
+                            }));
+                        if (firstWeekDate == null || firstWeekDate.isEmpty) {
+                          if (!mounted) return;
+                          showDialog(context: context, builder: (context) {
+                            return AlertDialog(
+                              title: const Text("Note"),
+                              content: const Text("Nothing was imported due to null or empty first week date"),
+                              actions: <Widget>[
+                                TextButton(
+                                    onPressed: () => { Navigator.of(context).pop() },
+                                    child: const Text("OK")
+                                )
+                              ],
+                            );
+                          });
+                          return;
+                        }
+
                         // Start importing...
                         if (!mounted) return;
                         context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Importing...',));
@@ -225,7 +256,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
 
                         CourseTable? courseTable;
                         try {
-                          courseTable = await fetchCourseTable(username, password, semesterId);
+                          courseTable = await fetchCourseTable(username, password, semesterId, firstWeekDate);
                         } catch(e) {
                           if (!mounted) return;
                           if (_isLoaderVisible) context.loaderOverlay.hide();
@@ -236,8 +267,9 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               content: Text("Error occurred: $e"),
                               actions: <Widget>[
                                 TextButton(
-                                    onPressed: () => {Navigator.of(context).pop()},
-                                    child: const Text("OK")
+                                  onPressed: () => { Navigator.of(context).pop() },
+                                  child: const Text("OK",
+                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
                                 )
                               ],
                             );
@@ -262,8 +294,9 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               ),
                               actions: <Widget>[
                                 TextButton(
-                                    onPressed: () => {Navigator.of(context).pop()},
-                                    child: const Text("OK")
+                                  onPressed: () => {Navigator.of(context).pop()},
+                                  child: const Text("OK",
+                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                                 )
                               ],
                             );
@@ -275,22 +308,23 @@ class _ImportTablePageState extends State<ImportTablePage> {
                         context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Saving...',));
                         setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
 
-                        if (!mounted) return;
-                        String? courseTableName = await Navigator.push(context, DialogRoute(context: context, builder: (context) {
-                          String initName = "";
-                          for (int i = 0; i < semesterList!.length; i++) {
-                            if (semesterId == semesterList[i].semesterId1) {
-                              initName = "${semesterList[i].value}学年第1学期课表";
-                              break;
+                        // 等待用户输入课程表名称
+                        String? courseTableName = await Navigator.push(context,
+                          DialogRoute(context: context, builder: (context) {
+                            String initName = "";
+                            for (int i = 0; i < semesterList!.length; i++) {
+                              if (semesterId == semesterList[i].semesterId1) {
+                                initName = "${semesterList[i].value}学年第1学期课表";
+                                break;
+                              }
+                              if (semesterId == semesterList[i].semesterId2) {
+                                initName = "${semesterList[i].value}学年第2学期课表";
+                                break;
+                              }
                             }
-                            if (semesterId == semesterList[i].semesterId2) {
-                              initName = "${semesterList[i].value}学年第2学期课表";
-                              break;
-                            }
-                          }
-                          return NameTableDialog(initName: initName, prefs: widget.prefs);
+                            return NameTableDialog(initName: initName, prefs: widget.prefs);
                         }));
-                        if (courseTableName == null) {
+                        if (courseTableName == null || courseTableName.isEmpty) {
                           if (!mounted) return;
                           if (_isLoaderVisible) context.loaderOverlay.hide();
                           setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
@@ -300,15 +334,20 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               content: const Text("Nothing was imported due to user cancellation"),
                               actions: <Widget>[
                                 TextButton(
-                                    onPressed: () => {Navigator.of(context).pop()},
-                                    child: const Text("OK")
+                                  onPressed: () => {Navigator.of(context).pop()},
+                                  child: const Text("OK",
+                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
                                 )
                               ],
                             );
                           });
                           return;
                         }
-                        if (!await widget.prefs.setString(courseTableName, courseTable.jsonString)) {
+
+                        String jsonString = jsonEncode(courseTable);
+
+                        // 存入 shared preferences
+                        if (!await widget.prefs.setString(courseTableName, jsonString)) {
                           if (!mounted) return;
                           if (_isLoaderVisible) context.loaderOverlay.hide();
                           setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
@@ -321,7 +360,8 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               actions: <Widget>[
                                 TextButton(
                                     onPressed: () => {Navigator.of(context).pop()},
-                                    child: const Text("OK")
+                                    child: const Text("OK",
+                                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
                                 )
                               ],
                             );
@@ -338,7 +378,9 @@ class _ImportTablePageState extends State<ImportTablePage> {
                       style: const ButtonStyle(
                         backgroundColor: MaterialStatePropertyAll<Color>(Colors.green)
                       ),
-                      child: const Text('Import'),
+                      child: const Text('Import',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
+                      ),
                     ),
                   ),
                 ],

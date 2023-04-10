@@ -5,19 +5,23 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 class CourseTable {
-  final String jsonString;
+  String? firstWeekDate;
   final int? row;
   final int? col;
   final int? week;
   final List<List<CourseInfo>>? data;
 
-  const CourseTable({
-    required this.jsonString,
+  CourseTable({
+    this.firstWeekDate,
     this.row,
     this.col,
     this.week,
     this.data,
   });
+
+  static Map<String, dynamic> toJson(CourseTable v) {
+    return {'firstWeekDate': v.firstWeekDate, 'row': v.row, 'col': v.col, 'week':v.week, 'data':v.data};
+  }
 }
 
 class CourseInfo {
@@ -41,8 +45,7 @@ class CourseInfo {
     required this.dateNum,
   });
 
-  factory CourseInfo.fromJson(Map<String, dynamic> json) {
-    return CourseInfo(
+  factory CourseInfo.fromJson(Map<String, dynamic> json) => CourseInfo(
       isEmpty: false,
       courseId: json['courseId'].toString(),
       courseName: json['courseName'].toString(),
@@ -52,7 +55,17 @@ class CourseInfo {
       weekNum: json['weekNum'] as int,
       dateNum: json['dateNum'] as int,
     );
-  }
+
+  static Map<String, dynamic> toJson(CourseInfo v) => {
+    'isEmpty': v.isEmpty,
+    'courseId': v.courseId,
+    'courseName': v.courseName,
+    'locationName': v.locationName,
+    'sectionBegin': v.sectionBegin,
+    'sectionLength': v.sectionLength,
+    'weekNum': v.weekNum,
+    'dateNum': v.dateNum,
+  };
 }
 
 class SemesterInfo {
@@ -80,7 +93,7 @@ class SemesterInfo {
 
 Future<bool> authorizer(String? username, String? password) async {
   http.Response response = await http.get(
-    Uri.parse('http://192.168.50.159:56789/login'),
+    Uri.parse('http://localhost:56789/login'),
     headers: {
       HttpHeaders.authorizationHeader: 'Basic ${utf8.fuse(base64).encode('$username:$password')}'
     },
@@ -93,7 +106,7 @@ Future<bool> authorizer(String? username, String? password) async {
 
 Future<List<SemesterInfo>?> fetchSemesterList(String? username, String? password) async {
   http.Response response = await http.get(
-    Uri.parse('http://192.168.50.159:56789/semester-list'),
+    Uri.parse('http://localhost:56789/semester-list'),
     headers: {
       HttpHeaders.authorizationHeader: 'Basic ${utf8.fuse(base64).encode('$username:$password')}'
     },
@@ -113,23 +126,22 @@ Future<List<SemesterInfo>> parseSemesterInfo(Uint8List responseBody) async {
   return json.map<SemesterInfo>((json) => SemesterInfo.fromJson(json)).toList();
 }
 
-Future<CourseTable?> fetchCourseTable(String? username, String? password, String? semesterId) async {
+Future<CourseTable?> fetchCourseTable(String? username, String? password, String? semesterId, String? firstWeekDate) async {
+  if (username == null || password == null || semesterId == null || firstWeekDate == null) return null;
   http.Response response = await http.get(
-    Uri.parse('http://192.168.50.159:56789/course-table'),
+    Uri.parse('http://localhost:56789/course-table'),
     headers: {
       HttpHeaders.authorizationHeader: 'Basic ${utf8.fuse(base64).encode('$username:$password')}',
-      'semesterId': '$semesterId',
+      'semesterId': semesterId,
     },
   );
 
-  if (response.statusCode != 200) {
-    return null;
-  }
+  if (response.statusCode != 200) return null;
 
-  return await parseCourseInfo(response.bodyBytes);
+  return await parseCourseInfo(response.bodyBytes, firstWeekDate);
 }
 
-Future<CourseTable> parseCourseInfo(Uint8List responseBody) async {
+Future<CourseTable> parseCourseInfo(Uint8List responseBody, String firstWeekDate) async {
   var responseString = const Utf8Decoder().convert(responseBody);
 
   final json = jsonDecode(responseString);
@@ -142,11 +154,12 @@ Future<CourseTable> parseCourseInfo(Uint8List responseBody) async {
     }
     if (i != dataJson.length-1) data.add(<CourseInfo>[]);
   }
-  return CourseTable(
-    jsonString: responseString,
+  CourseTable courseTable = CourseTable(
+    firstWeekDate: firstWeekDate,
     row: json['row'],
     col: json['col'],
     week: json['week'],
     data: data,
   );
+  return courseTable;
 }
