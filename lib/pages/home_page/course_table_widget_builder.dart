@@ -1,8 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table_demo/internal/types/course_table.dart';
+import 'package:flutter_course_table_demo/internal/utils/course_table_json_handlers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_course_table_demo/internal/handlers/response_handlers.dart';
+import 'package:flutter_course_table_demo/internal/types/course_info.dart';
 import 'package:spannable_grid/spannable_grid.dart';
 
 class CourseTableWidget extends StatefulWidget {
@@ -23,15 +25,15 @@ class CourseTableWidget extends StatefulWidget {
 
 class _CourseTableWidgetState extends State<CourseTableWidget> {
   late PageController pageController;
-  late int tableRow;
   late String tableName;
+  late CourseTable courseTable;
 
   @override
   void initState() {
     super.initState();
-    pageController = PageController(initialPage: getInitialPage());
-    tableRow = widget.courseTableRow;
     tableName = widget.courseTableName;
+    courseTable = jsonToCourseTable(widget.prefs.getString(tableName)!);
+    pageController = PageController(initialPage: getInitialPage());
   }
 
   @override
@@ -64,17 +66,17 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
       }
       if (i != dataJson.length-1) courseTableData.add(<CourseInfo>[]);
     }
-    int listLen = json['week'];
+    int weekNums = json['week'];
     int row = json['row'];
     int col = json['col'];
 
-    List<List<List<CourseInfo>>> courseTableList = List<List<List<CourseInfo>>>.generate(listLen, (_) => <List<CourseInfo>>[]);
+    List<List<List<CourseInfo>>> courseTableList = List<List<List<CourseInfo>>>.generate(weekNums, (_) => <List<CourseInfo>>[]);
     for (int i = 0; i < courseTableData.length; i++) {
         courseTableList[courseTableData[i][0].weekNum - 1].add(courseTableData[i]);
     }
 
     List<Container> tableList = [];
-    for (int i = 0; i < listLen; i++) {
+    for (int i = 0; i < weekNums; i++) {
       List<SpannableGridCellData> gridCells = [];
       for (int j = 0; j < courseTableList[i].length; j++) {
         String id = "id";
@@ -119,6 +121,12 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
   }
 
   int getInitialPage() {
-    return 0;
+    DateTime firstWeekDateTime = DateTime.parse(courseTable.firstWeekDate);
+    if (DateTime.now().isBefore(firstWeekDateTime)) return 0;
+    int currWeek = DateTime.now().difference(firstWeekDateTime).inDays ~/ 7;
+    if (currWeek > (courseTable.week!)) {
+      return courseTable.week!;
+    }
+    return currWeek;
   }
 }
