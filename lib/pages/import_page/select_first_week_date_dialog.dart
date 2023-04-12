@@ -79,7 +79,7 @@ class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context, "${currWeek.year}-${currWeek.month}-${currWeek.day}");
+                  Navigator.pop(context, currWeek.toIso8601String());
                 },
                 child: const Text("Select"),
               ),
