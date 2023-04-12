@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_course_table_demo/internal/handlers/response_handlers.dart';
+import 'package:flutter_course_table_demo/internal/types/semester_info.dart';
 
 class SelectSemesterDialog extends StatefulWidget{
   final List<SemesterInfo> semesterList;
