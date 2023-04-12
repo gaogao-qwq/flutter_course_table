@@ -1,7 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table_demo/internal/types/course_table.dart';
+import 'package:flutter_course_table_demo/internal/types/semester_info.dart';
 import 'package:flutter_course_table_demo/internal/handlers/response_handlers.dart';
+import 'package:flutter_course_table_demo/internal/utils/course_table_json_handlers.dart';
 import 'package:flutter_course_table_demo/pages/import_page/name_table_dialog.dart';
 import 'package:flutter_course_table_demo/pages/import_page/select_first_week_date_dialog.dart';
 import 'package:loader_overlay/loader_overlay.dart';
@@ -123,7 +126,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                                 content: const Text("Authorization failed"),
                                 actions: <Widget>[
                                   TextButton(
-                                    onPressed: () => {Navigator.of(context).pop()},
+                                    onPressed: () => { Navigator.of(context).pop() },
                                     child: const Text("OK",
                                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
                                   )
@@ -142,7 +145,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               content: Text("Error occurred: $e"),
                               actions: <Widget>[
                                 TextButton(
-                                  onPressed: () => {Navigator.of(context).pop()},
+                                  onPressed: () => { Navigator.of(context).pop() },
                                   child: const Text("OK",
                                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
                                 )
@@ -166,7 +169,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               content: Text("Error occurred: $e"),
                               actions: <Widget>[
                                 TextButton(
-                                  onPressed: () => {Navigator.of(context).pop()},
+                                  onPressed: () => { Navigator.of(context).pop() },
                                   child: const Text("OK",
                                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
                                 )
@@ -193,7 +196,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               ),
                               actions: <Widget>[
                                 TextButton(
-                                    onPressed: () => {Navigator.of(context).pop()},
+                                    onPressed: () => { Navigator.of(context).pop() },
                                     child: const Text("OK")
                                 )
                               ],
@@ -217,7 +220,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               content: const Text("Nothing was imported due to user cancellation"),
                               actions: <Widget>[
                                 TextButton(
-                                    onPressed: () => {Navigator.of(context).pop()},
+                                    onPressed: () => { Navigator.of(context).pop() },
                                     child: const Text("OK")
                                 )
                               ],
@@ -294,7 +297,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               ),
                               actions: <Widget>[
                                 TextButton(
-                                  onPressed: () => {Navigator.of(context).pop()},
+                                  onPressed: () => { Navigator.of(context).pop() },
                                   child: const Text("OK",
                                     style: TextStyle(fontSize: 20)),
                                 )
@@ -334,7 +337,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               content: const Text("Nothing was imported due to user cancellation"),
                               actions: <Widget>[
                                 TextButton(
-                                  onPressed: () => {Navigator.of(context).pop()},
+                                  onPressed: () => { Navigator.of(context).pop() },
                                   child: const Text("OK",
                                     style: TextStyle(fontSize: 20))
                                 )
@@ -346,9 +349,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
 
                         String jsonString;
                         try {
-                          jsonString = jsonEncode(courseTable, toEncodable: (Object? v) => v is CourseTable
-                            ? CourseTable.toJson(v)
-                            : throw UnsupportedError('Cannot convert to JSON: $v'));
+                          jsonString = courseTableToJson(courseTable);
                         } catch (e) {
                           if(!mounted) return;
                           showDialog(context: context, builder: (context) {
@@ -357,7 +358,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               content: Text("$e"),
                               actions: <Widget>[
                                 TextButton(
-                                    onPressed: () => {Navigator.of(context).pop()},
+                                    onPressed: () => { Navigator.of(context).pop() },
                                     child: const Text("OK",
                                         style: TextStyle(fontSize: 20))
                                 )
@@ -382,7 +383,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               ),
                               actions: <Widget>[
                                 TextButton(
-                                    onPressed: () => {Navigator.of(context).pop()},
+                                    onPressed: () => { Navigator.of(context).pop() },
                                     child: const Text("OK",
                                       style: TextStyle(fontSize: 20))
                                 )
