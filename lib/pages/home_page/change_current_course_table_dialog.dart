@@ -72,7 +72,11 @@ class _ChangeCurrentCourseTableState extends State<ChangeCurrentCourseTable> {
   List<DropdownMenuItem<String>> getStoredCourseTableItems(SharedPreferences prefs) {
     List<DropdownMenuItem<String>> items = [];
     Set<String> keys = prefs.getKeys();
-    for (var element in keys) { items.add(DropdownMenuItem(value: element, child: Text(element))); }
+    for (var element in keys) {
+      if (element != 'currCourseTableName') {
+        items.add(DropdownMenuItem(value: element, child: Text(element)));
+      }
+    }
     return items;
   }
 }
