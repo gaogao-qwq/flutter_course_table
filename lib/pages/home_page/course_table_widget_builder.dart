@@ -24,6 +24,7 @@ class CourseTableWidget extends StatefulWidget {
 }
 
 class _CourseTableWidgetState extends State<CourseTableWidget> {
+  late int currPage;
   late PageController pageController;
   late String tableName;
   late CourseTable courseTable;
@@ -33,7 +34,8 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
     super.initState();
     tableName = widget.courseTableName;
     courseTable = jsonToCourseTable(widget.prefs.getString(tableName)!);
-    pageController = PageController(initialPage: getInitialPage());
+    currPage = getInitialPage();
+    pageController = PageController(initialPage: currPage);
   }
 
   @override
@@ -51,11 +53,17 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
     return PageView(
       scrollDirection: Axis.horizontal,
       controller: pageController,
+      onPageChanged: (index) {
+        setState(() { currPage = index + 1; });
+      },
       children: _buildTableList(),
     );
   }
 
   List<Widget> _buildTableList() {
+    final isBright = Theme.of(context).brightness == Brightness.light;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     var json = jsonDecode(widget.prefs.getString(tableName)!);
     final List<dynamic> dataJson = jsonDecode(json['data']);
     List<List<CourseInfo>> courseTableData = [[]];
@@ -94,7 +102,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
             column: column,
             rowSpan: rowSpan,
             child: Card(
-              color: const Color.fromRGBO(177, 134, 218, 0.6),
+              color: isBright ? colorScheme.primary.withOpacity(0.5) : colorScheme.primary.withOpacity(0.35),
               child: Center(
                   child: Container(
                     padding: const EdgeInsets.all(2),
@@ -106,13 +114,23 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
             )
         ));
       }
+
       tableList.add(
         Container(
           padding: const EdgeInsets.all(2),
-          child: SpannableGrid(
-            cells: gridCells,
-            rows: row,
-            columns: col,
+          child: ListView(
+            controller: ScrollController(),
+            children: [
+              Column(
+                children: [
+                  SpannableGrid(
+                    cells: gridCells,
+                    rows: row,
+                    columns: col,
+                  )
+                ],
+              ),
+            ],
           ),
         )
       );

@@ -30,9 +30,19 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isBright = Theme.of(context).brightness == Brightness.light;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final Color lightColor = colorScheme.primary.withOpacity(0.10);
+    final Color darkColor = colorScheme.primary.withOpacity(0.20);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Flutter Course Table Demo'),
+        shadowColor: Theme.of(context).shadowColor,
+        notificationPredicate: (ScrollNotification notification) {
+          return notification.depth == 1;
+        },
+        scrolledUnderElevation: 4.0,
         actions: [
           _BrightnessButton(handleBrightnessChange: widget.handleBrightnessChange),
         ],
@@ -41,11 +51,11 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            const DrawerHeader(
+            DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.deepPurple,
+                color: isBright ? lightColor : darkColor,
               ),
-              child: Text('Flutter Course Table Menu'),
+              child: const Text('Flutter Course Table Menu'),
             ),
             ListTile(
               title: const Text('Import Table'),
@@ -166,11 +176,10 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> {
 
 class _BrightnessButton extends StatelessWidget {
   final Function handleBrightnessChange;
-  final bool showTooltipBelow;
+  final bool showTooltipBelow = true;
 
   const _BrightnessButton({
     required this.handleBrightnessChange,
-    this.showTooltipBelow = true,
   });
 
   @override
