@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_course_table_demo/pages/home_page/home_page.dart';
@@ -51,6 +53,7 @@ class _CourseTableAppState extends State<CourseTableApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      scrollBehavior: CourseTableAppScrollBehavior(),
       theme: ThemeData(
         colorSchemeSeed: Colors.purpleAccent,
         useMaterial3: true,
@@ -67,4 +70,12 @@ class _CourseTableAppState extends State<CourseTableApp> {
       ),
     );
   }
+}
+
+class CourseTableAppScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+  };
 }
