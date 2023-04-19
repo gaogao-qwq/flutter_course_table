@@ -4,11 +4,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 class DeleteStoredCourseTable extends StatefulWidget {
   final SharedPreferences prefs;
   final String? currCourseTableName;
+  final void Function(String courseTableName) handleDeleteCurrCourseTable;
 
   const DeleteStoredCourseTable({
     super.key,
     required this.prefs,
     this.currCourseTableName,
+    required this.handleDeleteCurrCourseTable,
   });
 
   @override
@@ -21,7 +23,7 @@ class _DeleteStoredCourseTableState extends State<DeleteStoredCourseTable> {
   @override
   void initState() {
     super.initState();
-    selectedCourseTableName = (widget.currCourseTableName == null || widget.currCourseTableName!.isEmpty) ? null : widget.currCourseTableName;
+    selectedCourseTableName = widget.currCourseTableName;
   }
 
   @override
@@ -35,29 +37,30 @@ class _DeleteStoredCourseTableState extends State<DeleteStoredCourseTable> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              DropdownButton(
-                  icon: const Icon(Icons.arrow_downward),
-                  elevation: 16,
-                  style: const TextStyle(color: Colors.deepPurple),
-                  underline: Container(
-                    height: 2,
-                    color: Colors.deepPurpleAccent,
-                  ),
-                items: getStoredCourseTableItems(widget.prefs),
-                value: selectedCourseTableName,
-                onChanged: (value) { setState(() { selectedCourseTableName = value ?? ""; }); }
+              DropdownMenu(
+                label: const Text("Delete course table"),
+                leadingIcon: const Icon(Icons.delete),
+                initialSelection: widget.currCourseTableName,
+                dropdownMenuEntries: getStoredCourseTableEntries(),
+                onSelected: (value) {
+                  selectedCourseTableName = value;
+                },
               ),
+              const Divider(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisSize: MainAxisSize.max,
                 children: [
                   ElevatedButton(
                     onPressed: () { Navigator.pop(context); },
-                    style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll<Color>(Colors.blueAccent)),
                     child: const Text("Back"),
                   ),
                   ElevatedButton(
-                    onPressed: () { Navigator.pop(context, selectedCourseTableName); },
-                    style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll<Color>(Colors.redAccent)),
+                    onPressed: () {
+                      if (selectedCourseTableName == null || selectedCourseTableName!.isEmpty) return;
+                      widget.handleDeleteCurrCourseTable(selectedCourseTableName!);
+                      Navigator.pop(context);
+                    },
                     child: const Text("Delete"),
                   ),
               ]),
@@ -66,11 +69,17 @@ class _DeleteStoredCourseTableState extends State<DeleteStoredCourseTable> {
       ],
     );
   }
+
+  List<DropdownMenuEntry<String>> getStoredCourseTableEntries() {
+    List<DropdownMenuEntry<String>> items = [];
+    Set<String> keys = widget.prefs.getKeys();
+    for (var element in keys) {
+      if (element != 'currCourseTableName') {
+        items.add(DropdownMenuEntry(value: element, label: element));
+      }
+    }
+    return items;
+  }
 }
 
-List<DropdownMenuItem<String>> getStoredCourseTableItems(SharedPreferences prefs) {
-  List<DropdownMenuItem<String>> items = [];
-  Set<String> keys = prefs.getKeys();
-  for (var element in keys) { items.add(DropdownMenuItem(value: element, child: Text(element))); }
-  return items;
-}
+

@@ -1,15 +1,13 @@
 import 'dart:ui';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_course_table_demo/pages/home_page/home_page.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future main() async{
+Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  await ScreenUtil.ensureScreenSize();
   runApp(CourseTableApp(prefs: prefs));
 }
 
@@ -47,7 +45,6 @@ class _CourseTableAppState extends State<CourseTableApp> {
   @override
   void initState() {
     super.initState();
-    themeMode = ThemeMode.dark;
   }
 
   @override
@@ -67,6 +64,7 @@ class _CourseTableAppState extends State<CourseTableApp> {
       ),
       home: CourseTableHomePage(
         prefs: widget.prefs,
+        useLightMode: useLightMode,
         handleBrightnessChange: handleBrightnessChange,
       ),
     );

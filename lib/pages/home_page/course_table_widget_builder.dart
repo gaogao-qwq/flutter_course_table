@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table_demo/internal/types/course_table.dart';
 import 'package:flutter_course_table_demo/internal/utils/course_table_json_handlers.dart';
@@ -50,13 +49,17 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
   }
 
   Widget _buildPageView() {
-    return PageView(
-      scrollDirection: Axis.horizontal,
-      controller: pageController,
-      onPageChanged: (index) {
-        setState(() { currPage = index + 1; });
-      },
-      children: _buildTableList(),
+    return Expanded(
+      child: Card(
+        child: PageView(
+          scrollDirection: Axis.horizontal,
+          controller: pageController,
+          onPageChanged: (index) {
+            setState(() { currPage = index + 1; });
+          },
+          children: _buildTableList(),
+        ),
+      ),
     );
   }
 
