@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table_demo/internal/types/course_table.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -150,9 +152,11 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
   }
 
   void animateToTargetPage(int targetPage) {
+    int oldPage = pageController.page!.toInt();
     pageController.animateToPage(
         targetPage,
-        duration: const Duration(milliseconds: 1000),
+        // duration = sqrt(abs(differences between oldPage & targetPage)) * 100ms
+        duration: Duration(milliseconds: sqrt((targetPage - oldPage).abs()).toInt() * 300),
         curve: Curves.easeInOut);
   }
 }
