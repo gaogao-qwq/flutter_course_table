@@ -55,11 +55,17 @@ class _CourseTableAppState extends State<CourseTableApp> {
     setState(() {
       themeMode = useLightMode ? ThemeMode.light : ThemeMode.dark;
     });
+    widget.prefs.setBool("useLightMode", useLightMode);
   }
 
   @override
   void initState() {
     super.initState();
+    if (!widget.prefs.containsKey("useLightMode")) {
+      widget.prefs.setBool("useLightMode", useLightMode);
+    } else {
+      themeMode = widget.prefs.getBool("useLightMode")! ? ThemeMode.light : ThemeMode.dark;
+    }
   }
 
   @override

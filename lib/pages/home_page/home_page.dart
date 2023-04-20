@@ -340,7 +340,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     List<DropdownMenuEntry<String>> items = [];
     Set<String> keys = widget.prefs.getKeys();
     for (var element in keys) {
-      if (element != 'currCourseTableName') {
+      if (element != 'currCourseTableName' && element != 'useLightMode') {
         items.add(DropdownMenuEntry(value: element, label: element));
       }
     }

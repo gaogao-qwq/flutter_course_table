@@ -25,7 +25,7 @@ import 'package:http/http.dart' as http;
 
 Future<bool> authorizer(String? username, String? password) async {
   http.Response response = await http.get(
-    Uri.parse('http://localhost:56789/login'),
+    Uri.parse('http://106.55.226.218:56789/login'),
     headers: {
       HttpHeaders.authorizationHeader: 'Basic ${utf8.fuse(base64).encode('$username:$password')}'
     },
@@ -38,7 +38,7 @@ Future<bool> authorizer(String? username, String? password) async {
 
 Future<List<SemesterInfo>?> fetchSemesterList(String? username, String? password) async {
   http.Response response = await http.get(
-    Uri.parse('http://localhost:56789/semester-list'),
+    Uri.parse('http://106.55.226.218:56789/semester-list'),
     headers: {
       HttpHeaders.authorizationHeader: 'Basic ${utf8.fuse(base64).encode('$username:$password')}'
     },
@@ -61,7 +61,7 @@ Future<List<SemesterInfo>> parseSemesterInfo(Uint8List responseBody) async {
 Future<CourseTable?> fetchCourseTable(String? username, String? password, String? semesterId, String? firstWeekDate) async {
   if (username == null || password == null || semesterId == null || firstWeekDate == null) return null;
   http.Response response = await http.get(
-    Uri.parse('http://localhost:56789/course-table'),
+    Uri.parse('http://106.55.226.218:56789/course-table'),
     headers: {
       HttpHeaders.authorizationHeader: 'Basic ${utf8.fuse(base64).encode('$username:$password')}',
       'semesterId': semesterId,
