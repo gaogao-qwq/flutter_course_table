@@ -113,9 +113,9 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
               color: isBright ? colorScheme.primary.withOpacity(0.5) : colorScheme.primary.withOpacity(0.35),
               child: Center(
                   child: Container(
-                    padding: const EdgeInsets.all(2),
+                    padding: const EdgeInsets.all(1),
                       child: Text(text,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.normal),
                     )
                   ),
               ),
@@ -123,18 +123,21 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
         ));
       }
 
-      tableList.add(
+    tableList.add(
         Container(
-          padding: const EdgeInsets.all(2),
+          padding: const EdgeInsets.all(1),
           child: ListView(
             controller: ScrollController(),
             children: [
               Column(
                 children: [
                   SpannableGrid(
-                    cells: gridCells,
                     rows: row,
                     columns: col,
+                    style: const SpannableGridStyle(
+                      spacing: 0.0,
+                    ),
+                    cells: gridCells,
                   )
                 ],
               ),
