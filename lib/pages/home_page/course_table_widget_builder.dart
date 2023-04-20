@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table_demo/internal/types/course_table.dart';
-import 'package:flutter_course_table_demo/internal/utils/course_table_json_handlers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_course_table_demo/internal/types/course_info.dart';
 import 'package:spannable_grid/spannable_grid.dart';
