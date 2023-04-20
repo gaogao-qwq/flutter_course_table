@@ -25,24 +25,31 @@ class LoadingOverlay extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => SimpleDialog(
-    backgroundColor: Colors.white,
-    children: <Widget>[
-      Center(
-        child: Container(
-          padding: const EdgeInsets.all(64),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              const CircularProgressIndicator(backgroundColor: Colors.grey,),
-              Container(
-                margin: const EdgeInsets.only(top: 10),
-                child: Text(loadingText),
-              ),
-            ]
-          )
+  Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    return SimpleDialog(
+      backgroundColor: colorScheme.background,
+      children: <Widget>[
+        Center(
+          child: Container(
+              padding: const EdgeInsets.all(64),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    CircularProgressIndicator(
+                      backgroundColor: colorScheme.primary.withOpacity(0.15),
+                      color: colorScheme.primary.withOpacity(0.8),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(top: 10),
+                      child: Text(loadingText),
+                    ),
+                  ]
+              )
+          ),
         ),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 }
