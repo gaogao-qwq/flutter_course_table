@@ -161,6 +161,12 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     widget.prefs.setString("currCourseTableName", courseTableName);
   }
 
+  void handleCurrPageChange(int page) {
+    setState(() {
+      currPage = page;
+    });
+  }
+
   void handleCurrCourseTableDelete(String courseTableName) {
     widget.prefs.remove(courseTableName);
     if (widget.prefs.getString(currCourseTableName) == courseTableName) {
@@ -272,18 +278,30 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
   Widget _appBarTitle() {
     return Row(
       children: [
+        DropdownMenu(
+          leadingIcon: const Icon(Icons.table_chart),
+          initialSelection: currCourseTableName,
+          inputDecorationTheme: const InputDecorationTheme(
+            isCollapsed: true
+          ),
+          dropdownMenuEntries: getStoredCourseTableEntries(),
+          onSelected: (value) {
+            if (value == null || value.isEmpty) return;
+            handleCurrCourseTableChange(value);
+          },
+        ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 30),
+          padding: const EdgeInsets.only(left: 10),
           child: DropdownMenu(
-            leadingIcon: const Icon(Icons.table_chart),
-            initialSelection: currCourseTableName,
+            leadingIcon: const Icon(Icons.calendar_today),
+            initialSelection: currPage,
             inputDecorationTheme: const InputDecorationTheme(
-              isCollapsed: true
+                isCollapsed: true
             ),
-            dropdownMenuEntries: getStoredCourseTableEntries(),
+            dropdownMenuEntries: getStoredCourseTableWeekEntries(),
             onSelected: (value) {
-              if (value == null || value.isEmpty) return;
-              handleCurrCourseTableChange(value);
+              if (value == null) return;
+              handleCurrPageChange(value);
             },
           ),
         )
@@ -343,6 +361,14 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
       if (element != 'currCourseTableName' && element != 'useLightMode') {
         items.add(DropdownMenuEntry(value: element, label: element));
       }
+    }
+    return items;
+  }
+
+  List<DropdownMenuEntry<int>> getStoredCourseTableWeekEntries() {
+    List<DropdownMenuEntry<int>> items = [];
+    for (int i = 0; i < (courseTable!.week ?? 0); i++) {
+      items.add(DropdownMenuEntry(value: i, label: "第 ${i+1}周"));
     }
     return items;
   }
