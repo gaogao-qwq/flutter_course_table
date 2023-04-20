@@ -57,7 +57,8 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
   void initState() {
     super.initState();
     currCourseTableName = widget.prefs.getString("currCourseTableName") ?? "";
-    courseTable = jsonToCourseTable(widget.prefs.getString(currCourseTableName)!);
+    courseTable = widget.prefs.getString(currCourseTableName) == null
+        ? jsonToCourseTable(widget.prefs.getString(currCourseTableName)) : null;
     currPage = getCurrCourseTableInitialPage();
     controller = AnimationController(
       duration: Duration(milliseconds: transitionLength.toInt() * 2),
