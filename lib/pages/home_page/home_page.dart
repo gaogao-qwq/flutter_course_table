@@ -16,6 +16,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table_demo/constants.dart';
+import 'package:flutter_course_table_demo/internal/types/course_table.dart';
+import 'package:flutter_course_table_demo/internal/utils/course_table_json_handlers.dart';
 import 'package:flutter_course_table_demo/pages/home_page/course_table_widget_builder.dart';
 import 'package:flutter_course_table_demo/pages/import_page/import_page.dart';
 import 'package:flutter_course_table_demo/pages/settings_page/settings_page.dart';
@@ -40,6 +42,8 @@ class CourseTableHomePage extends StatefulWidget {
 class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   late String currCourseTableName;
+  late int currPage;
+  late CourseTable? courseTable;
   late final AnimationController controller;
   late final CurvedAnimation railAnimation;
   late final ReverseAnimation barAnimation;
@@ -53,6 +57,8 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
   void initState() {
     super.initState();
     currCourseTableName = widget.prefs.getString("currCourseTableName") ?? "";
+    courseTable = jsonToCourseTable(widget.prefs.getString(currCourseTableName)!);
+    currPage = getCurrCourseTableInitialPage();
     controller = AnimationController(
       duration: Duration(milliseconds: transitionLength.toInt() * 2),
       value: 0,
@@ -111,8 +117,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
           animationController: controller,
           railAnimation: railAnimation,
           appBar: createAppBar(),
-          body: createScreenFor(
-              ScreenSelected.values[screenIndex], controller.value == 1),
+          body: createScreenFor(ScreenSelected.values[screenIndex]),
           navigationRail: NavigationRail(
             extended: showLargeSizeLayout,
             destinations: navRailDestinations,
@@ -144,131 +149,24 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
         );
       },
     );
-    // return Scaffold(
-    //   appBar: createAppBar(),
-    //   drawer: Drawer(
-    //     child: ListView(
-    //       padding: EdgeInsets.zero,
-    //       children: [
-    //         ListTile(
-    //           title: const Text('Import Table'),
-    //           onTap: () async {
-    //             Navigator.pop(context);
-    //             final tmp = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImportTablePage(prefs: widget.prefs)));
-    //             if (tmp == null || tmp.isEmpty) return;
-    //             changeCurrentCourseTable(tmp);
-    //           },
-    //         ),
-    //         ListTile(
-    //           title: const Text("Change Table"),
-    //           onTap: () async {
-    //             Navigator.pop(context);
-    //             Set<String> keys = widget.prefs.getKeys();
-    //             if (keys.isEmpty) {
-    //               showDialog(context: context, builder: (context) {
-    //                 return AlertDialog(
-    //                   title: const Text("Oops"),
-    //                   content: const Text(
-    //                       "You haven't import any course table yet"
-    //                   ),
-    //                   actions: <Widget>[
-    //                     TextButton(
-    //                         onPressed: () => {Navigator.of(context).pop()},
-    //                         child: const Text("OK")
-    //                     )
-    //                   ],
-    //                 );
-    //               });
-    //               return;
-    //             }
-    //             final tmp = await Navigator.push(context,
-    //               DialogRoute(context: context, builder: (context) => ChangeCurrentCourseTable(prefs: widget.prefs, currCourseTableName: currCourseTableName))
-    //             );
-    //             if (tmp == null) return;
-    //             if (currCourseTableName != tmp) changeCurrentCourseTable(tmp);
-    //           },
-    //         ),
-    //         ListTile(
-    //           title: const Text("Delete course table"),
-    //           onTap: () async {
-    //             Navigator.pop(context);
-    //             Set<String> keys = widget.prefs.getKeys();
-    //             if (keys.isEmpty) {
-    //               showDialog(context: context, builder: (context) {
-    //                 return AlertDialog(
-    //                   title: const Text("Oops"),
-    //                   content: const Text(
-    //                       "You haven't import any course table yet"
-    //                   ),
-    //                   actions: <Widget>[
-    //                     TextButton(
-    //                         onPressed: () => {Navigator.of(context).pop()},
-    //                         child: const Text("OK")
-    //                     )
-    //                   ],
-    //                 );
-    //               });
-    //               return;
-    //             }
-    //             final tmp = await Navigator.push(context,
-    //               DialogRoute(context: context, builder: (context) => DeleteStoredCourseTable(prefs: widget.prefs, currCourseTableName: currCourseTableName))
-    //             );
-    //             if (tmp == null) return;
-    //             if (currCourseTableName == tmp) changeCurrentCourseTable(null);
-    //             widget.prefs.remove(tmp);
-    //           },
-    //         ),
-    //         ListTile(
-    //           title: const Text('About'),
-    //           onTap: () {
-    //             Navigator.pop(context);
-    //             showAboutDialog(
-    //               context: context,
-    //               applicationName: 'Course Table Demo',
-    //               applicationVersion: '1.0.0',
-    //             );
-    //           },
-    //         ),
-    //       ],
-    //     ),
-    //   ),
-    //   body: (currCourseTableName.isEmpty)
-    //       ? Center(
-    //           child: Column(
-    //             mainAxisAlignment: MainAxisAlignment.center,
-    //             crossAxisAlignment: CrossAxisAlignment.center,
-    //             children: <Widget>[
-    //               const Padding(
-    //                 padding: EdgeInsets.all(10),
-    //                 child: Text("There is nothing here, select or import a course table first"),
-    //               ),
-    //               ElevatedButton(
-    //                 onPressed: () async {
-    //                   final tmp = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImportTablePage(prefs: widget.prefs)));
-    //                   if (tmp == null || tmp.isEmpty) return;
-    //                   changeCurrentCourseTable(tmp);
-    //                 },
-    //                 child: const Text("Import"),
-    //               ),
-    //             ],
-    //           )
-    //         )
-    //       : CourseTableWidget(courseTableName: currCourseTableName, courseTableRow: 12, prefs: widget.prefs),
-    // );
   }
 
-  void handleChangeCurrCourseTable(String courseTableName) {
+  void handleCurrCourseTableChange(String courseTableName) {
     setState(() {
       currCourseTableName = courseTableName;
+      courseTable = jsonToCourseTable(widget.prefs.getString(courseTableName));
+      currPage = getCurrCourseTableInitialPage();
     });
     widget.prefs.setString("currCourseTableName", courseTableName);
   }
 
-  void handleDeleteCurrCourseTable(String courseTableName) {
+  void handleCurrCourseTableDelete(String courseTableName) {
     widget.prefs.remove(courseTableName);
     if (widget.prefs.getString(currCourseTableName) == courseTableName) {
       setState(() {
         currCourseTableName = "";
+        courseTable = null;
+        currPage = 0;
       });
     }
   }
@@ -280,10 +178,10 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
   }
 
   Widget createScreenFor(
-      ScreenSelected screenSelected, bool showNavBarExample) {
+      ScreenSelected screenSelected) {
     switch (screenSelected) {
       case ScreenSelected.courseTable:
-        return currCourseTableName == ""
+        return courseTable == null || currCourseTableName.isEmpty
             ? Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -295,10 +193,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      setState(() {
-                        screenIndex = 1;
-                        handleScreenChanged(screenIndex);
-                      });
+                      handleScreenChanged(ScreenSelected.import.value);
                     },
                     child: const Text("Import"),
                   ),
@@ -306,8 +201,9 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
               )
             )
             : CourseTableWidget(
-              courseTableName: currCourseTableName,
-              courseTableRow: 12, prefs: widget.prefs
+              currPage: currPage,
+              courseTable: courseTable!,
+              prefs: widget.prefs,
             );
       case ScreenSelected.import:
         return ImportTablePage(prefs: widget.prefs);
@@ -315,18 +211,35 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
         return SettingsPage(
           currCourseTableName: currCourseTableName,
           prefs: widget.prefs,
-          handleChangeCurrCourseTable: handleChangeCurrCourseTable,
-          handleDeleteCurrCourseTable: handleDeleteCurrCourseTable,
+          handleChangeCurrCourseTable: handleCurrCourseTableChange,
+          handleDeleteCurrCourseTable: handleCurrCourseTableDelete,
         );
       default:
-        return CourseTableWidget(courseTableName: currCourseTableName, courseTableRow: 12, prefs: widget.prefs);
+        return Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                const Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Text("There is nothing here, select or import a course table first"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    handleScreenChanged(ScreenSelected.import.value);
+                  },
+                  child: const Text("Import"),
+                ),
+              ],
+            )
+        );
     }
   }
 
   PreferredSizeWidget createAppBar() {
     return AppBar(
       title: screenIndex == 0 && currCourseTableName != ""
-          ? Text(currCourseTableName)
+          ? _appBarTitle()
           : const Text("Flutter Course Table"),
       notificationPredicate: (ScrollNotification notification) {
         return notification.depth == 1;
@@ -339,6 +252,39 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
             ]
           : [Container()],
     );
+  }
+
+  Widget _appBarTitle() {
+    return Row(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 30),
+          child: DropdownMenu(
+            leadingIcon: const Icon(Icons.table_chart),
+            initialSelection: currCourseTableName,
+            inputDecorationTheme: const InputDecorationTheme(
+              isCollapsed: true
+            ),
+            dropdownMenuEntries: getStoredCourseTableEntries(),
+            onSelected: (value) {
+              if (value == null || value.isEmpty) return;
+              handleCurrCourseTableChange(value);
+            },
+          ),
+        )
+      ],
+    );
+  }
+
+  int getCurrCourseTableInitialPage() {
+    if (courseTable == null) return 0;
+    DateTime firstWeekDateTime = DateTime.parse(courseTable!.firstWeekDate);
+    if (DateTime.now().isBefore(firstWeekDateTime)) return 0;
+    int currWeek = DateTime.now().difference(firstWeekDateTime).inDays ~/ 7;
+    if (currWeek > (courseTable!.week!)) {
+      return courseTable!.week! - 1;
+    }
+    return currWeek;
   }
 
   Widget _trailingActions() {
@@ -375,13 +321,15 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     ),
   );
 
-  void changeCurrentCourseTable(String? name) {
-    if (name == null || name.isEmpty) {
-      setState(() { currCourseTableName = ""; });
-      return;
+  List<DropdownMenuEntry<String>> getStoredCourseTableEntries() {
+    List<DropdownMenuEntry<String>> items = [];
+    Set<String> keys = widget.prefs.getKeys();
+    for (var element in keys) {
+      if (element != 'currCourseTableName') {
+        items.add(DropdownMenuEntry(value: element, label: element));
+      }
     }
-    setState(() { currCourseTableName = name; });
-    widget.prefs.setString("currCourseTableName", name);
+    return items;
   }
 }
 

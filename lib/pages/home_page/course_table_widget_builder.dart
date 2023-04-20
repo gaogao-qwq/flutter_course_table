@@ -23,14 +23,14 @@ import 'package:flutter_course_table_demo/internal/types/course_info.dart';
 import 'package:spannable_grid/spannable_grid.dart';
 
 class CourseTableWidget extends StatefulWidget {
-  final String courseTableName;
-  final int courseTableRow;
   final SharedPreferences prefs;
+  final int currPage;
+  final CourseTable courseTable;
 
   const CourseTableWidget({
     super.key,
-    required this.courseTableName,
-    required this.courseTableRow,
+    required this.currPage,
+    required this.courseTable,
     required this.prefs,
   });
 
@@ -39,18 +39,25 @@ class CourseTableWidget extends StatefulWidget {
 }
 
 class _CourseTableWidgetState extends State<CourseTableWidget> {
-  late int currPage;
+  late int courseTableRow;
   late PageController pageController;
-  late String tableName;
-  late CourseTable courseTable;
 
   @override
   void initState() {
     super.initState();
-    tableName = widget.courseTableName;
-    courseTable = jsonToCourseTable(widget.prefs.getString(tableName)!);
-    currPage = getInitialPage();
-    pageController = PageController(initialPage: currPage);
+    courseTableRow = widget.courseTable.row ?? 0;
+    pageController = PageController(initialPage: widget.currPage, keepPage: false);
+  }
+
+  @override
+  void didUpdateWidget(covariant CourseTableWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.courseTable != oldWidget.courseTable) {
+      courseTableRow = widget.courseTable.row ?? 0;
+      pageController = PageController(initialPage: widget.currPage, keepPage: false);
+    }
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => animateToTargetPage(widget.currPage));
   }
 
   @override
@@ -58,46 +65,30 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
     return _buildPageView();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    pageController.dispose();
-  }
-
   Widget _buildPageView() {
-    return Expanded(
+    Widget pageView = Expanded(
       child: Card(
         child: PageView(
           scrollDirection: Axis.horizontal,
           controller: pageController,
-          onPageChanged: (index) {
-            setState(() { currPage = index + 1; });
-          },
           children: _buildTableList(),
         ),
       ),
     );
+    return pageView;
   }
 
   List<Widget> _buildTableList() {
     final isBright = Theme.of(context).brightness == Brightness.light;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    var json = jsonDecode(widget.prefs.getString(tableName)!);
-    final List<dynamic> dataJson = jsonDecode(json['data']);
-    List<List<CourseInfo>> courseTableData = [[]];
-    for (int i = 0; i < dataJson.length; i++) {
-      for (int j = 0; j < dataJson[i].length; j++) {
-        var tmp = CourseInfo.fromJson(dataJson[i][j]);
-        courseTableData[i].add(tmp);
-      }
-      if (i != dataJson.length-1) courseTableData.add(<CourseInfo>[]);
-    }
-    int weekNums = json['week'];
-    int row = json['row'];
-    int col = json['col'];
+    int weekNums = widget.courseTable.week ?? 0;
+    int row = widget.courseTable.row ?? 0;
+    int col = widget.courseTable.col ?? 0;
+    List<List<CourseInfo>> courseTableData = widget.courseTable.data;
 
-    List<List<List<CourseInfo>>> courseTableList = List<List<List<CourseInfo>>>.generate(weekNums, (_) => <List<CourseInfo>>[]);
+    List<List<List<CourseInfo>>> courseTableList = List<List<List<CourseInfo>>>
+        .generate(weekNums, (_) => <List<CourseInfo>>[]);
     for (int i = 0; i < courseTableData.length; i++) {
         courseTableList[courseTableData[i][0].weekNum - 1].add(courseTableData[i]);
     }
@@ -157,13 +148,10 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
     return tableList;
   }
 
-  int getInitialPage() {
-    DateTime firstWeekDateTime = DateTime.parse(courseTable.firstWeekDate);
-    if (DateTime.now().isBefore(firstWeekDateTime)) return 0;
-    int currWeek = DateTime.now().difference(firstWeekDateTime).inDays ~/ 7;
-    if (currWeek > (courseTable.week!)) {
-      return courseTable.week!;
-    }
-    return currWeek;
+  void animateToTargetPage(int targetPage) {
+    pageController.animateToPage(
+        targetPage,
+        duration: const Duration(milliseconds: 1000),
+        curve: Curves.easeInOut);
   }
 }

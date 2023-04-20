@@ -52,368 +52,362 @@ class _ImportTablePageState extends State<ImportTablePage> {
     return Expanded(
       child: GlobalLoaderOverlay(
         child: Card(
-          child: ListView(
-            children: [
-              Form(
-                key: _formKey,
-                child: Container(
-                  padding: const EdgeInsets.all(30),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: TextFormField(
-                          autofocus: true,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.person),
-                            border: UnderlineInputBorder(),
-                            labelText: 'Enter your account',
-                          ),
-                          maxLength: 30,
-                          autocorrect: false,
-                          onChanged: (value) { setState(() { username = value; }); },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) return 'Please enter your account';
-                            return null;
-                          },
-                          textInputAction: TextInputAction.next,
-                          onEditingComplete: () {
-                            FocusScope.of(context).requestFocus(passwordTextNode);
-                          },
+          child: Form(
+              key: _formKey,
+              child: Container(
+                padding: const EdgeInsets.all(30),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: TextFormField(
+                        autofocus: true,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.person),
+                          border: UnderlineInputBorder(),
+                          labelText: 'Enter your account',
                         ),
+                        maxLength: 30,
+                        autocorrect: false,
+                        onChanged: (value) { setState(() { username = value; }); },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return 'Please enter your account';
+                          return null;
+                        },
+                        textInputAction: TextInputAction.next,
+                        onEditingComplete: () {
+                          FocusScope.of(context).requestFocus(passwordTextNode);
+                        },
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: TextFormField(
-                          focusNode: passwordTextNode,
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.lock),
-                            border: UnderlineInputBorder(),
-                            labelText: 'Enter your password',
-                          ),
-                          maxLength: 30,
-                          obscureText: true,
-                          autocorrect: false,
-                          onChanged: (value) { setState(() { password = value; }); },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) return 'Please enter your password';
-                            return null;
-                          },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: TextFormField(
+                        focusNode: passwordTextNode,
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.lock),
+                          border: UnderlineInputBorder(),
+                          labelText: 'Enter your password',
                         ),
+                        maxLength: 30,
+                        obscureText: true,
+                        autocorrect: false,
+                        onChanged: (value) { setState(() { password = value; }); },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return 'Please enter your password';
+                          return null;
+                        },
                       ),
-                      Row(children: [Expanded(
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            // 验证表单
-                            if (!_formKey.currentState!.validate()) return;
-                            // 聚焦至空白 Node
-                            FocusScope.of(context).requestFocus(blankNode);
+                    ),
+                    Container(
+                      alignment: Alignment.center,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          // 验证表单
+                          if (!_formKey.currentState!.validate()) return;
+                          // 聚焦至空白 Node
+                          FocusScope.of(context).requestFocus(blankNode);
 
-                            // Start importing...
-                            context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Logging...',));
-                            setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                          // Start importing...
+                          context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Logging...',));
+                          setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
 
-                            // 登陆验证
-                            try {
-                              if (!await authorizer(username, password)) {
-                                if (!mounted) return;
-                                if (_isLoaderVisible) context.loaderOverlay.hide();
-                                setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                                showDialog(context: context, builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text("Oops"),
-                                    content: const Text("Authorization failed"),
-                                    actions: <Widget>[
-                                      TextButton(
-                                          onPressed: () => { Navigator.of(context).pop() },
-                                          child: const Text("OK",
-                                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
-                                      )
-                                    ],
-                                  );
-                                });
-                                return;
-                              }
-                            } catch(e) {
+                          // 登陆验证
+                          try {
+                            if (!await authorizer(username, password)) {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
                               showDialog(context: context, builder: (context) {
                                 return AlertDialog(
                                   title: const Text("Oops"),
-                                  content: Text("Error occurred: $e"),
+                                  content: const Text("Authorization failed"),
                                   actions: <Widget>[
                                     TextButton(
                                         onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK",
-                                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
+                                        child: const Text("OK")
                                     )
                                   ],
                                 );
                               });
                               return;
                             }
-
-                            // 获取 SemesterId 表
-                            List<SemesterInfo>? semesterList;
-                            try {
-                              semesterList = await fetchSemesterList(username, password);
-                            } catch(e) {
-                              if (!mounted) return;
-                              if (_isLoaderVisible) context.loaderOverlay.hide();
-                              setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Oops"),
-                                  content: Text("Error occurred: $e"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK",
-                                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
-                                    )
-                                  ],
-                                );
-                              });
-                              return;
-                            }
-
+                          } catch(e) {
                             if (!mounted) return;
                             if (_isLoaderVisible) context.loaderOverlay.hide();
                             setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                            // End logging...
-
-                            if (semesterList == null) {
-                              if (!mounted) return;
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Oops"),
-                                  content: const Text(
-                                      "Everything alright but the server return a empty semester list\n"
-                                          "Check if the network is down\n"
-                                          "Or it can be server side error as well"
-                                  ),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK")
-                                    )
-                                  ],
-                                );
-                              });
-                              return;
-                            }
-
-                            // 等待用户选择要导入的学期
-                            final semesterId = await Navigator.push(context,
-                                DialogRoute(context: context, builder: (context) {
-                                  return SelectSemesterDialog(semesterList: semesterList!);
-                                }));
-                            if (semesterId == null || semesterId.isEmpty) {
-                              if (!mounted) return;
-                              if (_isLoaderVisible) context.loaderOverlay.hide();
-                              setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Note"),
-                                  content: const Text("Nothing was imported due to user cancellation"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK")
-                                    )
-                                  ],
-                                );
-                              });
-                              return;
-                            }
-
-                            // 等待用户选择课表第一周日期
-                            if (!mounted) return;
-                            final firstWeekDate = await Navigator.push(context,
-                                DialogRoute(context: context, builder: (context) {
-                                  return const FirstWeekDateSelector();
-                                }));
-                            if (firstWeekDate == null || firstWeekDate.isEmpty) {
-                              if (!mounted) return;
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Note"),
-                                  content: const Text("Nothing was imported due to null or empty first week date"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK")
-                                    )
-                                  ],
-                                );
-                              });
-                              return;
-                            }
-
-                            // Start importing...
-                            if (!mounted) return;
-                            context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Importing...',));
-                            setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-
-                            CourseTable? courseTable;
-                            try {
-                              courseTable = await fetchCourseTable(username, password, semesterId, firstWeekDate);
-                            } catch(e) {
-                              if (!mounted) return;
-                              if (_isLoaderVisible) context.loaderOverlay.hide();
-                              setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Oops"),
-                                  content: Text("Error occurred: $e"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK",
-                                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
-                                    )
-                                  ],
-                                );
-                              });
-                              return;
-                            }
-
-                            if (!mounted) return;
-                            if (_isLoaderVisible) context.loaderOverlay.hide();
-                            setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                            // End importing...
-
-                            if (courseTable == null) {
-                              if (!mounted) return;
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Oops"),
-                                  content: const Text(
-                                      "Everything alright but the server return a empty course table list\n"
-                                          "Check if you choose wrong semester\n"
-                                          "Or it can be server side error as well"
-                                  ),
-                                  actions: <Widget>[
-                                    TextButton(
+                            showDialog(context: context, builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Oops"),
+                                content: Text("Error occurred: $e"),
+                                actions: <Widget>[
+                                  TextButton(
                                       onPressed: () => { Navigator.of(context).pop() },
-                                      child: const Text("OK",
-                                          style: TextStyle(fontSize: 20)),
-                                    )
-                                  ],
-                                );
-                              });
-                              return;
-                            }
+                                      child: const Text("OK")
+                                  )
+                                ],
+                              );
+                            });
+                            return;
+                          }
 
-                            // Start saving...
-                            context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Saving...',));
-                            setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-
-                            // 等待用户输入课程表名称
-                            String? courseTableName = await Navigator.push(context,
-                                DialogRoute(context: context, builder: (context) {
-                                  String initName = "";
-                                  for (int i = 0; i < semesterList!.length; i++) {
-                                    if (semesterId == semesterList[i].semesterId1) {
-                                      initName = "${semesterList[i].value}学年第1学期课表";
-                                      break;
-                                    }
-                                    if (semesterId == semesterList[i].semesterId2) {
-                                      initName = "${semesterList[i].value}学年第2学期课表";
-                                      break;
-                                    }
-                                  }
-                                  return NameTableDialog(initName: initName, prefs: widget.prefs);
-                                }));
-                            if (courseTableName == null || courseTableName.isEmpty) {
-                              if (!mounted) return;
-                              if (_isLoaderVisible) context.loaderOverlay.hide();
-                              setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Note"),
-                                  content: const Text("Nothing was imported due to user cancellation"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK",
-                                            style: TextStyle(fontSize: 20))
-                                    )
-                                  ],
-                                );
-                              });
-                              return;
-                            }
-
-                            String jsonString;
-                            try {
-                              jsonString = courseTableToJson(courseTable);
-                            } catch (e) {
-                              if(!mounted) return;
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Oops"),
-                                  content: Text("$e"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK",
-                                            style: TextStyle(fontSize: 20))
-                                    )
-                                  ],
-                                );
-                              });
-                              if (_isLoaderVisible) context.loaderOverlay.hide();
-                              setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              return;
-                            }
-
-                            // 存入 shared preferences
-                            if (!await widget.prefs.setString(courseTableName, jsonString)) {
-                              if (!mounted) return;
-                              if (_isLoaderVisible) context.loaderOverlay.hide();
-                              setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Oops"),
-                                  content: const Text(
-                                      "Saving course table to device failed, check if your device has enough spaces"
-                                  ),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK",
-                                            style: TextStyle(fontSize: 20))
-                                    )
-                                  ],
-                                );
-                              });
-                            }
-
+                          // 获取 SemesterId 表
+                          List<SemesterInfo>? semesterList;
+                          try {
+                            semesterList = await fetchSemesterList(username, password);
+                          } catch(e) {
                             if (!mounted) return;
                             if (_isLoaderVisible) context.loaderOverlay.hide();
                             setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                            // End saving...
+                            showDialog(context: context, builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Oops"),
+                                content: Text("Error occurred: $e"),
+                                actions: <Widget>[
+                                  TextButton(
+                                      onPressed: () => { Navigator.of(context).pop() },
+                                      child: const Text("OK")
+                                  )
+                                ],
+                              );
+                            });
+                            return;
+                          }
 
-                            Navigator.pop(context, courseTableName);
-                          },
-                          style: ButtonStyle(
-                              backgroundColor: MaterialStatePropertyAll<Color>(colorScheme.primary.withOpacity(0.15))
-                          ),
-                          child: const Text('Import',
-                              style: TextStyle(fontSize: 16)
-                          ),
+                          if (!mounted) return;
+                          if (_isLoaderVisible) context.loaderOverlay.hide();
+                          setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                          // End logging...
+
+                          if (semesterList == null) {
+                            if (!mounted) return;
+                            showDialog(context: context, builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Oops"),
+                                content: const Text(
+                                    "Everything alright but the server return a empty semester list\n"
+                                        "Check if the network is down\n"
+                                        "Or it can be server side error as well"
+                                ),
+                                actions: <Widget>[
+                                  TextButton(
+                                      onPressed: () => { Navigator.of(context).pop() },
+                                      child: const Text("OK")
+                                  )
+                                ],
+                              );
+                            });
+                            return;
+                          }
+
+                          // 等待用户选择要导入的学期
+                          final semesterId = await Navigator.push(context,
+                              DialogRoute(context: context, builder: (context) {
+                                return SelectSemesterDialog(semesterList: semesterList!);
+                              }));
+                          if (semesterId == null || semesterId.isEmpty) {
+                            if (!mounted) return;
+                            if (_isLoaderVisible) context.loaderOverlay.hide();
+                            setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                            showDialog(context: context, builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Note"),
+                                content: const Text("Nothing was imported due to user cancellation"),
+                                actions: <Widget>[
+                                  TextButton(
+                                      onPressed: () => { Navigator.of(context).pop() },
+                                      child: const Text("OK")
+                                  )
+                                ],
+                              );
+                            });
+                            return;
+                          }
+
+                          // 等待用户选择课表第一周日期
+                          if (!mounted) return;
+                          final firstWeekDate = await Navigator.push(context,
+                              DialogRoute(context: context, builder: (context) {
+                                return const FirstWeekDateSelector();
+                              }));
+                          if (firstWeekDate == null || firstWeekDate.isEmpty) {
+                            if (!mounted) return;
+                            showDialog(context: context, builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Note"),
+                                content: const Text("Nothing was imported due to null or empty first week date"),
+                                actions: <Widget>[
+                                  TextButton(
+                                      onPressed: () => { Navigator.of(context).pop() },
+                                      child: const Text("OK")
+                                  )
+                                ],
+                              );
+                            });
+                            return;
+                          }
+
+                          // Start importing...
+                          if (!mounted) return;
+                          context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Importing...',));
+                          setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+
+                          CourseTable? courseTable;
+                          try {
+                            courseTable = await fetchCourseTable(username, password, semesterId, firstWeekDate);
+                          } catch(e) {
+                            if (!mounted) return;
+                            if (_isLoaderVisible) context.loaderOverlay.hide();
+                            setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                            showDialog(context: context, builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Oops"),
+                                content: Text("Error occurred: $e"),
+                                actions: <Widget>[
+                                  TextButton(
+                                      onPressed: () => { Navigator.of(context).pop() },
+                                      child: const Text("OK")
+                                  )
+                                ],
+                              );
+                            });
+                            return;
+                          }
+
+                          if (!mounted) return;
+                          if (_isLoaderVisible) context.loaderOverlay.hide();
+                          setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                          // End importing...
+
+                          if (courseTable == null) {
+                            if (!mounted) return;
+                            showDialog(context: context, builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Oops"),
+                                content: const Text(
+                                    "Everything alright but the server return a empty course table list\n"
+                                        "Check if you choose wrong semester\n"
+                                        "Or it can be server side error as well"
+                                ),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () => { Navigator.of(context).pop() },
+                                    child: const Text("OK"),
+                                  )
+                                ],
+                              );
+                            });
+                            return;
+                          }
+
+                          // Start saving...
+                          context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Saving...',));
+                          setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+
+                          // 等待用户输入课程表名称
+                          String? courseTableName = await Navigator.push(context,
+                              DialogRoute(context: context, builder: (context) {
+                                String initName = "";
+                                for (int i = 0; i < semesterList!.length; i++) {
+                                  if (semesterId == semesterList[i].semesterId1) {
+                                    initName = "${semesterList[i].value}学年第1学期课表";
+                                    break;
+                                  }
+                                  if (semesterId == semesterList[i].semesterId2) {
+                                    initName = "${semesterList[i].value}学年第2学期课表";
+                                    break;
+                                  }
+                                }
+                                return NameTableDialog(initName: initName, prefs: widget.prefs);
+                              }));
+                          if (courseTableName == null || courseTableName.isEmpty) {
+                            if (!mounted) return;
+                            if (_isLoaderVisible) context.loaderOverlay.hide();
+                            setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                            showDialog(context: context, builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Note"),
+                                content: const Text("Nothing was imported due to user cancellation"),
+                                actions: <Widget>[
+                                  TextButton(
+                                      onPressed: () => { Navigator.of(context).pop() },
+                                      child: const Text("OK")
+                                  )
+                                ],
+                              );
+                            });
+                            return;
+                          }
+
+                          String jsonString;
+                          try {
+                            jsonString = courseTableToJson(courseTable);
+                          } catch (e) {
+                            if(!mounted) return;
+                            showDialog(context: context, builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Oops"),
+                                content: Text("$e"),
+                                actions: <Widget>[
+                                  TextButton(
+                                      onPressed: () => { Navigator.of(context).pop() },
+                                      child: const Text("OK")
+                                  )
+                                ],
+                              );
+                            });
+                            if (_isLoaderVisible) context.loaderOverlay.hide();
+                            setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                            return;
+                          }
+
+                          // 存入 shared preferences
+                          if (!await widget.prefs.setString(courseTableName, jsonString)) {
+                            if (!mounted) return;
+                            if (_isLoaderVisible) context.loaderOverlay.hide();
+                            setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                            showDialog(context: context, builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Oops"),
+                                content: const Text(
+                                    "Saving course table to device failed, check if your device has enough spaces"
+                                ),
+                                actions: <Widget>[
+                                  TextButton(
+                                      onPressed: () => { Navigator.of(context).pop() },
+                                      child: const Text("OK")
+                                  )
+                                ],
+                              );
+                            });
+                          }
+
+                          if (!mounted) return;
+                          if (_isLoaderVisible) context.loaderOverlay.hide();
+                          setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                          // End saving...
+                        },
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(120, 50),
+                          maximumSize: const Size(160, 80),
+                          foregroundColor: colorScheme.surface,
+                          backgroundColor: colorScheme.primary.withOpacity(0.35)
                         ),
-                      )])
-                    ],
-                  ),
-                )
+                        child: Text('Import',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: colorScheme.surface,
+                            )
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               )
-            ],
-          )),
+          )
+        ),
       ),
     );
   }
