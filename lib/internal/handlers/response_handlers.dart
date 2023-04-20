@@ -73,7 +73,7 @@ Future<CourseTable?> fetchCourseTable(String? username, String? password, String
   return await parseCourseInfo(response.bodyBytes, firstWeekDate);
 }
 
-Future<CourseTable> parseCourseInfo(Uint8List responseBody, String firstWeekDate) async {
+Future<CourseTable?> parseCourseInfo(Uint8List responseBody, String firstWeekDate) async {
   var responseString = const Utf8Decoder().convert(responseBody);
 
   return apiJsonToCourseTable(responseString, firstWeekDate);
