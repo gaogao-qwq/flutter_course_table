@@ -237,10 +237,24 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
   }
 
   PreferredSizeWidget createAppBar() {
+    Widget title;
+    switch (screenIndex) {
+      case 0:
+        title = currCourseTableName != "" ? _appBarTitle()
+            : const Text("Flutter Course Table");
+        break;
+      case 1:
+        title = const Text("Import Course Table");
+        break;
+      case 2:
+        title = const Text("Settings");
+        break;
+      default:
+        title = const Text("Flutter Course Table");
+    }
+
     return AppBar(
-      title: screenIndex == 0 && currCourseTableName != ""
-          ? _appBarTitle()
-          : const Text("Flutter Course Table"),
+      title: title,
       notificationPredicate: (ScrollNotification notification) {
         return notification.depth == 1;
       },
