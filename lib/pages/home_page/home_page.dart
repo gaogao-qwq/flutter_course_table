@@ -48,7 +48,6 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
   late final CurvedAnimation railAnimation;
   late final ReverseAnimation barAnimation;
   bool controllerInitialized = false;
-  bool showMediumSizeLayout = false;
   bool showLargeSizeLayout = false;
 
   int screenIndex = ScreenSelected.courseTable.value;
@@ -82,20 +81,13 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     super.didChangeDependencies();
     final double width = MediaQuery.of(context).size.width;
     final AnimationStatus status = controller.status;
-    if (width > mediumWidthBreakpoint) {
-      if (width > largeWidthBreakpoint) {
-        showMediumSizeLayout = false;
-        showLargeSizeLayout = true;
-      } else {
-        showMediumSizeLayout = true;
-        showLargeSizeLayout = false;
-      }
+    if (width > largeWidthBreakpoint) {
+      showLargeSizeLayout = true;
       if (status != AnimationStatus.forward &&
           status != AnimationStatus.completed) {
         controller.forward();
       }
     } else {
-      showMediumSizeLayout = false;
       showLargeSizeLayout = false;
       if (status != AnimationStatus.reverse &&
           status != AnimationStatus.dismissed) {
@@ -104,7 +96,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     }
     if (!controllerInitialized) {
       controllerInitialized = true;
-      controller.value = width > mediumWidthBreakpoint ? 1 : 0;
+      controller.value = width > largeWidthBreakpoint ? 1 : 0;
     }
   }
 
@@ -120,7 +112,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
           appBar: createAppBar(),
           body: createScreenFor(ScreenSelected.values[screenIndex]),
           navigationRail: NavigationRail(
-            extended: showLargeSizeLayout,
+            extended: true,
             destinations: navRailDestinations,
             selectedIndex: screenIndex,
             onDestinationSelected: (index) {
@@ -132,9 +124,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
             trailing: Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 20),
-                child: showLargeSizeLayout
-                    ? _expandedTrailingActions()
-                    : _trailingActions(),
+                child: _expandedTrailingActions()
               ),
             ),
           ),
@@ -184,8 +174,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     });
   }
 
-  Widget createScreenFor(
-      ScreenSelected screenSelected) {
+  Widget createScreenFor(ScreenSelected screenSelected) {
     switch (screenSelected) {
       case ScreenSelected.courseTable:
         return courseTable == null || currCourseTableName.isEmpty
@@ -327,17 +316,6 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
       return courseTable!.week! - 1;
     }
     return currWeek;
-  }
-
-  Widget _trailingActions() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        _BrightnessButton(
-          handleBrightnessChange: widget.handleBrightnessChange,
-        ),
-      ],
-    );
   }
 
   Widget _expandedTrailingActions() => Container(
