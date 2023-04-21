@@ -136,6 +136,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                   context: context,
                   applicationName: AppInformation.appName.value,
                   applicationVersion: AppInformation.appVersion.value,
+                  applicationLegalese: AppInformation.appLegalese.value,
                 );
               },
             ),
