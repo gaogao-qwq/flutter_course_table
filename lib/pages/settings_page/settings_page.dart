@@ -71,12 +71,6 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
             ListTile(
               leading: const Icon(Icons.table_chart),
               title: const Text("Change current course table"),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(widget.currCourseTableName),
-                  const Icon(Icons.arrow_drop_down)
-              ]),
               onTap: () {
                 if (widget.prefs.getKeys().isEmpty) {
                   showDialog(context: context, builder: (context) {
@@ -155,7 +149,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
     List<DropdownMenuEntry<String>> items = [];
     Set<String> keys = prefs.getKeys();
     for (var element in keys) {
-      if (element != 'currCourseTableName') {
+      if (element != 'currCourseTableName' && element != 'useLightMode') {
         items.add(DropdownMenuEntry(value: element, label: element));
       }
     }
