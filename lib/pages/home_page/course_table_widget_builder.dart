@@ -112,16 +112,13 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
             column: column,
             rowSpan: rowSpan,
             child: Card(
-              color: isBright ? colorScheme.primary.withOpacity(0.5) : colorScheme.primary.withOpacity(0.35),
-              child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(1),
-                      child: Text(text,
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.normal),
-                    )
-                  ),
-              ),
-            )
+                color: isBright ? colorScheme.primary.withOpacity(0.5) : colorScheme.primary.withOpacity(0.35),
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.all(2),
+                    child: Text(text, style: const TextStyle(fontSize: 10)),
+                ),
+            ),
         ));
       }
 
@@ -136,8 +133,9 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
                   SpannableGrid(
                     rows: row,
                     columns: col,
-                    style: const SpannableGridStyle(
-                      spacing: 0.0,
+                    style: SpannableGridStyle(
+                      backgroundColor: colorScheme.primary.withOpacity(0.1),
+                      spacing: 0,
                     ),
                     cells: gridCells,
                   )
