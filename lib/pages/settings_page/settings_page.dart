@@ -123,7 +123,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                     (context) => DeleteStoredCourseTable(
                   prefs: widget.prefs,
                   currCourseTableName: widget.currCourseTableName,
-                  handleDeleteCurrCourseTable: widget.handleChangeCurrCourseTable,
+                  handleDeleteCurrCourseTable: widget.handleDeleteCurrCourseTable,
                 )));
               },
             ),
