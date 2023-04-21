@@ -18,7 +18,7 @@ import 'package:flutter/material.dart';
 
 const double narrowScreenWidthThreshold = 450;
 
-const double largeWidthBreakpoint = 1000;
+const double largeWidthBreakpoint = 800;
 
 const double transitionLength = 500;
 
