@@ -157,12 +157,12 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
 
   void animateToTargetPage(int targetPage) {
     int oldPage = pageController.page!.toInt();
-    if (oldPage == targetPage) return;
+    if ((pageController.page! - targetPage).abs() < 1) return;
     _isAnimating = true;
     pageController.animateToPage(
         targetPage,
         // duration = sqrt(abs(differences between oldPage & targetPage)) * 100ms
-        duration: Duration(milliseconds: sqrt((targetPage - oldPage).abs()).toInt() * 100),
+        duration: Duration(milliseconds: sqrt((targetPage - oldPage).abs()).toInt() * 300),
         curve: Curves.easeInOut).then((value) {_isAnimating = false;});
   }
 }
