@@ -151,15 +151,15 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     widget.prefs.setString("currCourseTableName", courseTableName);
   }
 
-  void handleCurrPageChange(int page) {
+  void handleCurrPageChanged(int page) {
     setState(() {
       currPage = page;
     });
   }
 
-  void handleCurrCourseTableDelete(String courseTableName) {
+  void handleCurrCourseTableDeleted(String courseTableName) {
     widget.prefs.remove(courseTableName);
-    if (widget.prefs.getString(currCourseTableName) == courseTableName) {
+    if (currCourseTableName == courseTableName) {
       setState(() {
         currCourseTableName = "";
         courseTable = null;
@@ -197,8 +197,10 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
               )
             )
             : CourseTableWidget(
+              initPage: getCurrCourseTableInitialPage(),
               currPage: currPage,
               courseTable: courseTable!,
+              handleCurrPageChanged: handleCurrPageChanged,
               prefs: widget.prefs,
             );
       case ScreenSelected.import:
@@ -208,7 +210,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
           currCourseTableName: currCourseTableName,
           prefs: widget.prefs,
           handleChangeCurrCourseTable: handleCurrCourseTableChange,
-          handleDeleteCurrCourseTable: handleCurrCourseTableDelete,
+          handleDeleteCurrCourseTable: handleCurrCourseTableDeleted,
         );
       default:
         return Expanded(
@@ -250,9 +252,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     }
 
     return AppBar(
-      title: !showLargeSizeLayout
-          ? title
-          : const Text("Flutter Course Table"),
+      title: title,
       notificationPredicate: (ScrollNotification notification) {
         return notification.depth == 1;
       },
@@ -266,8 +266,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     );
   }
 
-  Widget _appBarTitle() {
-    return Container(
+  Widget _appBarTitle() => Container(
       alignment: Alignment.bottomLeft,
       child: FittedBox(
         child: Row(
@@ -297,7 +296,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
                 dropdownMenuEntries: getStoredCourseTableWeekEntries(),
                 onSelected: (value) {
                   if (value == null) return;
-                  handleCurrPageChange(value);
+                  handleCurrPageChanged(value);
                 },
               ),
             )
@@ -305,7 +304,6 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
         ),
       ),
     );
-  }
 
   int getCurrCourseTableInitialPage() {
     if (courseTable == null) return 0;
@@ -319,24 +317,28 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
   }
 
   Widget _expandedTrailingActions() => Container(
+    alignment: Alignment.bottomCenter,
     constraints: const BoxConstraints.tightFor(width: 250),
     padding: const EdgeInsets.symmetric(horizontal: 30),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    child: ListView(
       children: [
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text('Brightness'),
-            Expanded(child: Container()),
-            Switch(
-                value: widget.useLightMode,
-                onChanged: (value) {
-                  widget.handleBrightnessChange(value);
-                })
+            const Divider(),
+            Row(
+              children: [
+                const Text('Brightness'),
+                Expanded(child: Container()),
+                Switch(
+                    value: widget.useLightMode,
+                    onChanged: (value) {
+                      widget.handleBrightnessChange(value);
+                    }),
+              ],
+            ),
           ],
         ),
-        const Divider(),
       ],
     ),
   );
@@ -354,6 +356,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
 
   List<DropdownMenuEntry<int>> getStoredCourseTableWeekEntries() {
     List<DropdownMenuEntry<int>> items = [];
+    if (courseTable == null) return items;
     for (int i = 0; i < (courseTable!.week ?? 0); i++) {
       items.add(DropdownMenuEntry(value: i, label: "第${i+1}周"));
     }
