@@ -303,7 +303,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
           ],
         ),
       ),
-    );
+  );
 
   int getCurrCourseTableInitialPage() {
     if (courseTable == null) return 0;
