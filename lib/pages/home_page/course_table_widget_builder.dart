@@ -23,14 +23,18 @@ import 'package:flutter_course_table_demo/internal/types/course_info.dart';
 import 'package:spannable_grid/spannable_grid.dart';
 
 class CourseTableWidget extends StatefulWidget {
-  final SharedPreferences prefs;
+  final int initPage;
   final int currPage;
   final CourseTable courseTable;
+  final void Function(int) handleCurrPageChanged;
+  final SharedPreferences prefs;
 
   const CourseTableWidget({
     super.key,
+    required this.initPage,
     required this.currPage,
     required this.courseTable,
+    required this.handleCurrPageChanged,
     required this.prefs,
   });
 
@@ -41,21 +45,19 @@ class CourseTableWidget extends StatefulWidget {
 class _CourseTableWidgetState extends State<CourseTableWidget> {
   late int courseTableRow;
   late PageController pageController;
+  late bool _isAnimating;
 
   @override
   void initState() {
     super.initState();
     courseTableRow = widget.courseTable.row ?? 0;
-    pageController = PageController(initialPage: widget.currPage, keepPage: false);
+    pageController = PageController(initialPage: widget.initPage, keepPage: false);
+    _isAnimating = false;
   }
 
   @override
   void didUpdateWidget(covariant CourseTableWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.courseTable != oldWidget.courseTable) {
-      courseTableRow = widget.courseTable.row ?? 0;
-      pageController = PageController(initialPage: widget.currPage, keepPage: false);
-    }
     WidgetsBinding.instance
         .addPostFrameCallback((_) => animateToTargetPage(widget.currPage));
   }
@@ -67,12 +69,14 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
 
   Widget _buildPageView() {
     Widget pageView = Expanded(
-      child: Card(
-        child: PageView(
-          scrollDirection: Axis.horizontal,
-          controller: pageController,
-          children: _buildTableList(),
-        ),
+      child: PageView(
+        scrollDirection: Axis.horizontal,
+        controller: pageController,
+        onPageChanged: (value) {
+          if (_isAnimating) return;
+          widget.handleCurrPageChanged(value);
+        },
+        children: _buildTableList(),
       ),
     );
     return pageView;
@@ -128,19 +132,21 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
           child: ListView(
             controller: ScrollController(),
             children: [
-              Column(
-                children: [
-                  SpannableGrid(
-                    rows: row,
-                    columns: col,
-                    style: SpannableGridStyle(
-                      backgroundColor: colorScheme.primary.withOpacity(0.1),
-                      spacing: 0,
-                    ),
-                    cells: gridCells,
-                  )
-                ],
-              ),
+              Card(
+                child: Column(
+                  children: [
+                    SpannableGrid(
+                      rows: row,
+                      columns: col,
+                      style: SpannableGridStyle(
+                        backgroundColor: colorScheme.primary.withOpacity(0.1),
+                        spacing: 0,
+                      ),
+                      cells: gridCells,
+                    )
+                  ],
+                ),
+              )
             ],
           ),
         )
@@ -151,10 +157,12 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
 
   void animateToTargetPage(int targetPage) {
     int oldPage = pageController.page!.toInt();
+    if (oldPage == targetPage) return;
+    _isAnimating = true;
     pageController.animateToPage(
         targetPage,
         // duration = sqrt(abs(differences between oldPage & targetPage)) * 100ms
-        duration: Duration(milliseconds: sqrt((targetPage - oldPage).abs()).toInt() * 300),
-        curve: Curves.easeInOut);
+        duration: Duration(milliseconds: sqrt((targetPage - oldPage).abs()).toInt() * 100),
+        curve: Curves.easeInOut).then((value) {_isAnimating = false;});
   }
 }
