@@ -261,7 +261,9 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     }
 
     return AppBar(
-      title: title,
+      title: !showLargeSizeLayout
+          ? title
+          : const Text("Flutter Course Table"),
       notificationPredicate: (ScrollNotification notification) {
         return notification.depth == 1;
       },
@@ -276,36 +278,43 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
   }
 
   Widget _appBarTitle() {
-    return Row(
-      children: [
-        DropdownMenu(
-          leadingIcon: const Icon(Icons.table_chart),
-          initialSelection: currCourseTableName,
-          inputDecorationTheme: const InputDecorationTheme(
-            isCollapsed: true
-          ),
-          dropdownMenuEntries: getStoredCourseTableEntries(),
-          onSelected: (value) {
-            if (value == null || value.isEmpty) return;
-            handleCurrCourseTableChange(value);
-          },
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 10),
-          child: DropdownMenu(
-            leadingIcon: const Icon(Icons.calendar_today),
-            initialSelection: currPage,
-            inputDecorationTheme: const InputDecorationTheme(
-                isCollapsed: true
+    return Container(
+      alignment: Alignment.bottomLeft,
+      child: FittedBox(
+        child: Row(
+          children: [
+            DropdownMenu(
+              menuHeight: 400,
+              leadingIcon: const Icon(Icons.table_chart),
+              initialSelection: currCourseTableName,
+              inputDecorationTheme: const InputDecorationTheme(
+                  isCollapsed: true
+              ),
+              dropdownMenuEntries: getStoredCourseTableEntries(),
+              onSelected: (value) {
+                if (value == null || value.isEmpty) return;
+                handleCurrCourseTableChange(value);
+              },
             ),
-            dropdownMenuEntries: getStoredCourseTableWeekEntries(),
-            onSelected: (value) {
-              if (value == null) return;
-              handleCurrPageChange(value);
-            },
-          ),
-        )
-      ],
+            Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: DropdownMenu(
+                menuHeight: 400,
+                leadingIcon: const Icon(Icons.calendar_today),
+                initialSelection: currPage,
+                inputDecorationTheme: const InputDecorationTheme(
+                    isCollapsed: true
+                ),
+                dropdownMenuEntries: getStoredCourseTableWeekEntries(),
+                onSelected: (value) {
+                  if (value == null) return;
+                  handleCurrPageChange(value);
+                },
+              ),
+            )
+          ],
+        ),
+      ),
     );
   }
 
@@ -368,7 +377,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
   List<DropdownMenuEntry<int>> getStoredCourseTableWeekEntries() {
     List<DropdownMenuEntry<int>> items = [];
     for (int i = 0; i < (courseTable!.week ?? 0); i++) {
-      items.add(DropdownMenuEntry(value: i, label: "第 ${i+1}周"));
+      items.add(DropdownMenuEntry(value: i, label: "第${i+1}周"));
     }
     return items;
   }
