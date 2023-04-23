@@ -62,6 +62,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
     });
   }
 
+  // TODO: Add API selector support.
   @override
   Widget build(BuildContext context) {
     return Expanded(
@@ -144,16 +145,5 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
         ),
       )
     );
-  }
-
-  List<DropdownMenuEntry<String>> getStoredCourseTableEntries(SharedPreferences prefs) {
-    List<DropdownMenuEntry<String>> items = [];
-    Set<String> keys = prefs.getKeys();
-    for (var element in keys) {
-      if (element != 'currCourseTableName' && element != 'useLightMode') {
-        items.add(DropdownMenuEntry(value: element, label: element));
-      }
-    }
-    return items;
   }
 }
