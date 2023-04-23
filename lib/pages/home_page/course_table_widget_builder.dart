@@ -66,9 +66,9 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
 
   @override
   void dispose() {
-    super.dispose();
     widget.handleCourseTableDisposed();
     pageController.dispose();
+    super.dispose();
   }
 
   @override
