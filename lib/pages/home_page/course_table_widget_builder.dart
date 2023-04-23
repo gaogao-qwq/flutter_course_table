@@ -27,6 +27,7 @@ class CourseTableWidget extends StatefulWidget {
   final int currPage;
   final CourseTable courseTable;
   final void Function(int) handleCurrPageChanged;
+  final void Function() handleCourseTableDisposed;
   final SharedPreferences prefs;
 
   const CourseTableWidget({
@@ -35,6 +36,7 @@ class CourseTableWidget extends StatefulWidget {
     required this.currPage,
     required this.courseTable,
     required this.handleCurrPageChanged,
+    required this.handleCourseTableDisposed,
     required this.prefs,
   });
 
@@ -63,12 +65,19 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    widget.handleCourseTableDisposed();
+    pageController.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return _buildPageView();
   }
 
   Widget _buildPageView() {
-    Widget pageView = Expanded(
+    return Expanded(
       child: PageView(
         scrollDirection: Axis.horizontal,
         controller: pageController,
@@ -79,7 +88,6 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
         children: _buildTableList(),
       ),
     );
-    return pageView;
   }
 
   List<Widget> _buildTableList() {
@@ -130,7 +138,6 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
         Container(
           padding: const EdgeInsets.all(1),
           child: ListView(
-            controller: ScrollController(),
             children: [
               Card(
                 child: Column(

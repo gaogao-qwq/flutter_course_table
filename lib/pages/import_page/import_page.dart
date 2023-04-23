@@ -28,9 +28,11 @@ import 'loading_overlay.dart';
 import 'select_semester_dialog.dart';
 
 class ImportTablePage extends StatefulWidget {
+  final Function(String courseTableName) handleCurrCourseTableChange;
   final SharedPreferences prefs;
   const ImportTablePage({
     super.key,
+    required this.handleCurrCourseTableChange,
     required this.prefs,
   });
 
@@ -44,6 +46,11 @@ class _ImportTablePageState extends State<ImportTablePage> {
   String? username, password;
   FocusNode? blankNode = FocusNode();
   FocusNode? passwordTextNode = FocusNode();
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -390,6 +397,8 @@ class _ImportTablePageState extends State<ImportTablePage> {
                             if (_isLoaderVisible) context.loaderOverlay.hide();
                             setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
                             // End saving...
+
+                            widget.handleCurrCourseTableChange(courseTableName);
                           },
                           style: ElevatedButton.styleFrom(
                               minimumSize: const Size(120, 50),

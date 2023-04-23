@@ -157,6 +157,10 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     });
   }
 
+  void handleCourseTableDisposed() {
+    currPage = getCurrCourseTableInitialPage();
+  }
+
   void handleCurrCourseTableDeleted(String courseTableName) {
     widget.prefs.remove(courseTableName);
     if (currCourseTableName == courseTableName) {
@@ -201,10 +205,14 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
               currPage: currPage,
               courseTable: courseTable!,
               handleCurrPageChanged: handleCurrPageChanged,
+              handleCourseTableDisposed: handleCourseTableDisposed,
               prefs: widget.prefs,
             );
       case ScreenSelected.import:
-        return ImportTablePage(prefs: widget.prefs);
+        return ImportTablePage(
+          handleCurrCourseTableChange: handleCurrCourseTableChange,
+          prefs: widget.prefs,
+        );
       case ScreenSelected.settings:
         return SettingsPage(
           currCourseTableName: currCourseTableName,
