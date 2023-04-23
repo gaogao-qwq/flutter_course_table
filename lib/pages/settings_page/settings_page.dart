@@ -16,8 +16,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table_demo/constants.dart';
-import 'package:flutter_course_table_demo/pages/home_page/change_current_course_table_dialog.dart';
-import 'package:flutter_course_table_demo/pages/home_page/delete_stored_course_table_dialog.dart';
+import 'package:flutter_course_table_demo/pages/settings_page/change_current_course_table_dialog.dart';
+import 'package:flutter_course_table_demo/pages/settings_page/delete_stored_course_table_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
