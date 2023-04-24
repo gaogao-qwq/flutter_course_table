@@ -76,13 +76,13 @@ class _ImportTablePageState extends State<ImportTablePage> {
                           decoration: const InputDecoration(
                             icon: Icon(Icons.person),
                             border: UnderlineInputBorder(),
-                            labelText: 'Enter your account',
+                            labelText: "请输入帐号",
                           ),
                           maxLength: 30,
                           autocorrect: false,
                           onChanged: (value) { setState(() { username = value; }); },
                           validator: (value) {
-                            if (value == null || value.isEmpty) return 'Please enter your account';
+                            if (value == null || value.isEmpty) return "请输入有效账号";
                             return null;
                           },
                           textInputAction: TextInputAction.next,
@@ -98,14 +98,14 @@ class _ImportTablePageState extends State<ImportTablePage> {
                           decoration: const InputDecoration(
                             icon: Icon(Icons.lock),
                             border: UnderlineInputBorder(),
-                            labelText: 'Enter your password',
+                            labelText: "请输入密码",
                           ),
                           maxLength: 30,
                           obscureText: true,
                           autocorrect: false,
                           onChanged: (value) { setState(() { password = value; }); },
                           validator: (value) {
-                            if (value == null || value.isEmpty) return 'Please enter your password';
+                            if (value == null || value.isEmpty) return "请输入有效密码";
                             return null;
                           },
                         ),
@@ -124,7 +124,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                             FocusScope.of(context).requestFocus(blankNode);
 
                             // Start importing...
-                            context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Logging...',));
+                            context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: '登陆中...',));
                             setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
 
                             // 登陆验证
@@ -133,36 +133,14 @@ class _ImportTablePageState extends State<ImportTablePage> {
                                 if (!mounted) return;
                                 if (_isLoaderVisible) context.loaderOverlay.hide();
                                 setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                                showDialog(context: context, builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text("Oops"),
-                                    content: const Text("Authorization failed"),
-                                    actions: <Widget>[
-                                      TextButton(
-                                          onPressed: () => { Navigator.of(context).pop() },
-                                          child: const Text("OK")
-                                      )
-                                    ],
-                                  );
-                                });
+                                showInfoDialog("Oops", "账户验证错误");
                                 return;
                               }
                             } catch(e) {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Oops"),
-                                  content: Text("Error occurred: $e"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK")
-                                    )
-                                  ],
-                                );
-                              });
+                              showInfoDialog("Oops", "发生了错误：$e");
                               return;
                             }
 
@@ -174,18 +152,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Oops"),
-                                  content: Text("Error occurred: $e"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK")
-                                    )
-                                  ],
-                                );
-                              });
+                              showInfoDialog("Oops", "发生了错误：$e");
                               return;
                             }
 
@@ -196,22 +163,11 @@ class _ImportTablePageState extends State<ImportTablePage> {
 
                             if (semesterList == null) {
                               if (!mounted) return;
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Oops"),
-                                  content: const Text(
-                                      "Everything alright but the server return a empty semester list\n"
-                                          "Check if the network is down\n"
-                                          "Or it can be server side error as well"
-                                  ),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK")
-                                    )
-                                  ],
-                                );
-                              });
+                              showInfoDialog("Oops",
+                                  "服务端返回了空学期列表\n"
+                                  "检查设备网络是否已连接\n"
+                                  "这也有可能是服务端的错误"
+                              );
                               return;
                             }
 
@@ -224,19 +180,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Note"),
-                                  content: const Text("Nothing was imported due to user cancellation"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK")
-                                    )
-                                  ],
-                                );
-                              });
-                              return;
+                              showInfoDialog("注意", "由于用户取消，课表未导入");
                             }
 
                             // 等待用户选择课表第一周日期
@@ -247,24 +191,13 @@ class _ImportTablePageState extends State<ImportTablePage> {
                                 }));
                             if (firstWeekDate == null || firstWeekDate.isEmpty) {
                               if (!mounted) return;
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Note"),
-                                  content: const Text("Nothing was imported due to null or empty first week date"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK")
-                                    )
-                                  ],
-                                );
-                              });
+                              showInfoDialog("注意", "未指定第一周日期，课表未导入");
                               return;
                             }
 
                             // Start importing...
                             if (!mounted) return;
-                            context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Importing...',));
+                            context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: '导入中...',));
                             setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
 
                             CourseTable? courseTable;
@@ -274,18 +207,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Oops"),
-                                  content: Text("Error occurred: $e"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK")
-                                    )
-                                  ],
-                                );
-                              });
+                              showInfoDialog("Oops", "发生了错误：$e");
                               return;
                             }
 
@@ -296,27 +218,15 @@ class _ImportTablePageState extends State<ImportTablePage> {
 
                             if (courseTable == null) {
                               if (!mounted) return;
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Oops"),
-                                  content: const Text(
-                                      "Everything alright but the server return a empty course table list\n"
-                                          "Check if you choose wrong semester\n"
-                                          "Or it can be server side error as well"
-                                  ),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () => { Navigator.of(context).pop() },
-                                      child: const Text("OK"),
-                                    )
-                                  ],
-                                );
-                              });
+                              showInfoDialog("Oops",
+                                  "服务端返回了空课表\n"
+                                  "请检查是否选择了错误的学期\n"
+                                  "这也有可能是服务端的错误");
                               return;
                             }
 
                             // Start saving...
-                            context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: 'Saving...',));
+                            context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: '保存中...',));
                             setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
 
                             // 等待用户输入课程表名称
@@ -339,18 +249,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Note"),
-                                  content: const Text("Nothing was imported due to user cancellation"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK")
-                                    )
-                                  ],
-                                );
-                              });
+                              showInfoDialog("注意", "由于用户取消，课表未导入");
                               return;
                             }
 
@@ -359,18 +258,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               jsonString = courseTableToJson(courseTable);
                             } catch (e) {
                               if(!mounted) return;
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Oops"),
-                                  content: Text("$e"),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK")
-                                    )
-                                  ],
-                                );
-                              });
+                              showInfoDialog("Oops", "$e");
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
                               return;
@@ -381,20 +269,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showDialog(context: context, builder: (context) {
-                                return AlertDialog(
-                                  title: const Text("Oops"),
-                                  content: const Text(
-                                      "Saving course table to device failed, check if your device has enough spaces"
-                                  ),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () => { Navigator.of(context).pop() },
-                                        child: const Text("OK")
-                                    )
-                                  ],
-                                );
-                              });
+                              showInfoDialog("Oops", "未正常保存课表，请检查设备是否有足够空间");
                             }
 
                             if (!mounted) return;
@@ -416,6 +291,21 @@ class _ImportTablePageState extends State<ImportTablePage> {
         ),
       ),
     );
+  }
+
+  void showInfoDialog(String title, String content) {
+    showDialog(context: context, builder: (context) {
+      return AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: <Widget>[
+          TextButton(
+              onPressed: () => { Navigator.of(context).pop() },
+              child: const Text("OK")
+          )
+        ],
+      );
+    });
   }
 }
 
