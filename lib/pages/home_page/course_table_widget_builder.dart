@@ -97,8 +97,18 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
     int weekNums = widget.courseTable.week ?? 0;
     int row = widget.courseTable.row ?? 0;
     int col = widget.courseTable.col ?? 0;
-    List<List<CourseInfo>> courseTableData = widget.courseTable.data;
 
+    DateTime dateIterator = DateTime.parse(widget.courseTable.firstWeekDate);
+    List<Text> weekList = [
+      const Text("周一"),
+      const Text("周二"),
+      const Text("周三"),
+      const Text("周四"),
+      const Text("周五"),
+      const Text("周六"),
+      const Text("周日")];
+
+    List<List<CourseInfo>> courseTableData = widget.courseTable.data;
     List<List<List<CourseInfo>>> courseTableList = List<List<List<CourseInfo>>>
         .generate(weekNums, (_) => <List<CourseInfo>>[]);
     for (int i = 0; i < courseTableData.length; i++) {
@@ -106,14 +116,19 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
     }
 
     List<Container> tableList = [];
+    // 遍历周数
     for (int i = 0; i < weekNums; i++) {
       List<SpannableGridCellData> gridCells = [];
+      List<Text> calendars = [];
+
+      // 遍历每周课时列表
       for (int j = 0; j < courseTableList[i].length; j++) {
         String id = "id";
         String text = "";
         int row = courseTableList[i][j][0].sectionBegin;
         int column = courseTableList[i][j][0].dateNum;
         int rowSpan = courseTableList[i][j][0].sectionLength;
+        // 因为会出现课程冲突，所以采用了三维数组，最内层遍历同一课时内的课程
         for (int k = 0; k < courseTableList[i][j].length; k++) {
           id += "_${i}_${courseTableList[i][j][k].dateNum}_${courseTableList[i][j][k].sectionBegin}";
           text += "${courseTableList[i][j][k].courseName}, ${courseTableList[i][j][k].locationName}";
@@ -134,26 +149,48 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
         ));
       }
 
-    tableList.add(
+      // 遍历每周每天日期
+      for (int weekday = 1; weekday <= 7; weekday++) {
+        calendars.add(Text("${dateIterator.month}/${dateIterator.day}"));
+        dateIterator = dateIterator.add(const Duration(days: 1));
+      }
+
+      tableList.add(
         Container(
-          padding: const EdgeInsets.all(1),
-          child: ListView(
+          padding: const EdgeInsets.only(left: 2, right: 2),
+          child: Column(
             children: [
-              Card(
-                child: Column(
-                  children: [
-                    SpannableGrid(
-                      rows: row,
-                      columns: col,
-                      style: SpannableGridStyle(
-                        backgroundColor: colorScheme.primary.withOpacity(0.1),
-                        spacing: 0,
-                      ),
-                      cells: gridCells,
-                    )
-                  ],
+              ListTile(
+                tileColor: colorScheme.primary.withOpacity(0.25),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(8),
+                    bottomRight: Radius.circular(8)
+                  ),
                 ),
-              )
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: calendars,
+                ),
+                subtitle: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: weekList,
+                ),
+              ),
+              Expanded(child: ListView(children: [
+                Card(
+                  child: (
+                      SpannableGrid(
+                        rows: row,
+                        columns: col,
+                        style: SpannableGridStyle(
+                          backgroundColor: colorScheme.primary.withOpacity(0.1),
+                          spacing: 0,
+                        ),
+                        cells: gridCells,
+                      )
+                  ),
+              )])),
             ],
           ),
         )

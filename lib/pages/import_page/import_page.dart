@@ -113,6 +113,10 @@ class _ImportTablePageState extends State<ImportTablePage> {
                       Container(
                         alignment: Alignment.center,
                         child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(120, 50),
+                            backgroundColor: colorScheme.primary.withOpacity(0.25),
+                          ),
                           onPressed: () async {
                             // 验证表单
                             if (!_formKey.currentState!.validate()) return;
@@ -400,18 +404,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
 
                             widget.handleCurrCourseTableChange(courseTableName);
                           },
-                          style: ElevatedButton.styleFrom(
-                              minimumSize: const Size(120, 50),
-                              maximumSize: const Size(160, 80),
-                              foregroundColor: colorScheme.surface,
-                              backgroundColor: colorScheme.primary.withOpacity(0.35)
-                          ),
-                          child: Text('Import',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: colorScheme.surface,
-                              )
-                          ),
+                          child: const Text('导入', style: TextStyle(fontSize: 18))
                         ),
                       ),
                     ],
