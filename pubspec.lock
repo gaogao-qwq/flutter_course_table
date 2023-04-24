@@ -184,6 +184,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.8.2"
+  path_provider:
+    dependency: "direct main"
+    description:
+      name: path_provider
+      sha256: c7edf82217d4b2952b2129a61d3ad60f1075b9299e629e149a8d2e39c2e6aad4
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.14"
+  path_provider_android:
+    dependency: transitive
+    description:
+      name: path_provider_android
+      sha256: da97262be945a72270513700a92b39dd2f4a54dad55d061687e2e37a6390366a
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.25"
+  path_provider_foundation:
+    dependency: transitive
+    description:
+      name: path_provider_foundation
+      sha256: ad4c4d011830462633f03eb34445a45345673dfd4faf1ab0b4735fbd93b19183
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.2"
   path_provider_linux:
     dependency: transitive
     description:
@@ -326,13 +350,21 @@ packages:
     source: hosted
     version: "2.2.3"
   sqlite3:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: sqlite3
       sha256: a3ba4b66a7ab170ce7aa3f5ac43c19ee8d6637afbe7b7c95c94112b4f4d91566
       url: "https://pub.dev"
     source: hosted
     version: "1.11.0"
+  sqlite3_flutter_libs:
+    dependency: "direct main"
+    description:
+      name: sqlite3_flutter_libs
+      sha256: "02f80aea54a19a36b347dedf6d4181ecd9107f5831ea6139cfd0376a3de197ba"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.13"
   stack_trace:
     dependency: transitive
     description:
@@ -415,4 +447,4 @@ packages:
     version: "1.0.0"
 sdks:
   dart: ">=2.19.2 <3.0.0"
-  flutter: ">=3.0.0"
+  flutter: ">=3.3.0"
