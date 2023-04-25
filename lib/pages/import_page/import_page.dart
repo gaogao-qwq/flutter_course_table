@@ -15,17 +15,20 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
+
 import 'package:flutter_course_table_demo/internal/types/course_table.dart';
 import 'package:flutter_course_table_demo/internal/types/semester_info.dart';
 import 'package:flutter_course_table_demo/internal/handlers/response_handlers.dart';
 import 'package:flutter_course_table_demo/internal/utils/course_table_json_handlers.dart';
 import 'package:flutter_course_table_demo/pages/import_page/name_table_dialog.dart';
 import 'package:flutter_course_table_demo/pages/import_page/select_first_week_date_dialog.dart';
+import 'package:flutter_course_table_demo/pages/import_page/select_semester_dialog.dart';
+import 'package:flutter_course_table_demo/pages/import_page/loading_overlay.dart';
+import 'package:flutter_course_table_demo/utils/show_info_dialog.dart';
+
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'loading_overlay.dart';
-import 'select_semester_dialog.dart';
 
 class ImportTablePage extends StatefulWidget {
   final Function(String courseTableName) handleCurrCourseTableChange;
@@ -133,14 +136,14 @@ class _ImportTablePageState extends State<ImportTablePage> {
                                 if (!mounted) return;
                                 if (_isLoaderVisible) context.loaderOverlay.hide();
                                 setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                                showInfoDialog("Oops", "账户验证错误");
+                                showInfoDialog(context, "Oops", "账户验证错误");
                                 return;
                               }
                             } catch(e) {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showInfoDialog("Oops", "发生了错误：$e");
+                              showInfoDialog(context, "Oops", "发生了错误：$e");
                               return;
                             }
 
@@ -152,7 +155,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showInfoDialog("Oops", "发生了错误：$e");
+                              showInfoDialog(context, "Oops", "发生了错误：$e");
                               return;
                             }
 
@@ -163,7 +166,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
 
                             if (semesterList == null) {
                               if (!mounted) return;
-                              showInfoDialog("Oops",
+                              showInfoDialog(context, "Oops",
                                   "服务端返回了空学期列表\n"
                                   "检查设备网络是否已连接\n"
                                   "这也有可能是服务端的错误"
@@ -180,7 +183,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showInfoDialog("注意", "由于用户取消，课表未导入");
+                              showInfoDialog(context, "注意", "由于用户取消，课表未导入");
                             }
 
                             // 等待用户选择课表第一周日期
@@ -191,7 +194,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                                 }));
                             if (firstWeekDate == null || firstWeekDate.isEmpty) {
                               if (!mounted) return;
-                              showInfoDialog("注意", "未指定第一周日期，课表未导入");
+                              showInfoDialog(context, "注意", "未指定第一周日期，课表未导入");
                               return;
                             }
 
@@ -207,7 +210,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showInfoDialog("Oops", "发生了错误：$e");
+                              showInfoDialog(context, "Oops", "发生了错误：$e");
                               return;
                             }
 
@@ -218,7 +221,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
 
                             if (courseTable == null) {
                               if (!mounted) return;
-                              showInfoDialog("Oops",
+                              showInfoDialog(context, "Oops",
                                   "服务端返回了空课表\n"
                                   "请检查是否选择了错误的学期\n"
                                   "这也有可能是服务端的错误");
@@ -249,7 +252,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showInfoDialog("注意", "由于用户取消，课表未导入");
+                              showInfoDialog(context, "注意", "由于用户取消，课表未导入");
                               return;
                             }
 
@@ -258,7 +261,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               jsonString = courseTableToJson(courseTable);
                             } catch (e) {
                               if(!mounted) return;
-                              showInfoDialog("Oops", "$e");
+                              showInfoDialog(context, "Oops", "$e");
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
                               return;
@@ -269,7 +272,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showInfoDialog("Oops", "未正常保存课表，请检查设备是否有足够空间");
+                              showInfoDialog(context, "Oops", "未正常保存课表，请检查设备是否有足够空间");
                             }
 
                             if (!mounted) return;
@@ -293,19 +296,5 @@ class _ImportTablePageState extends State<ImportTablePage> {
     );
   }
 
-  void showInfoDialog(String title, String content) {
-    showDialog(context: context, builder: (context) {
-      return AlertDialog(
-        title: Text(title),
-        content: Text(content),
-        actions: <Widget>[
-          TextButton(
-              onPressed: () => { Navigator.of(context).pop() },
-              child: const Text("OK")
-          )
-        ],
-      );
-    });
-  }
 }
 
