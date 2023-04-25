@@ -163,10 +163,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
               ListTile(
                 tileColor: colorScheme.primary.withOpacity(0.25),
                 shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(8),
-                    bottomRight: Radius.circular(8)
-                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
                 ),
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

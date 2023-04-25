@@ -189,13 +189,13 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
                 children: <Widget>[
                   const Padding(
                     padding: EdgeInsets.all(10),
-                    child: Text("There is nothing here, select or import a course table first"),
+                    child: Text("未选择或未导入课表，请先选择或导入课表"),
                   ),
                   ElevatedButton(
                     onPressed: () {
                       handleScreenChanged(ScreenSelected.import.value);
                     },
-                    child: const Text("Import"),
+                    child: const Text("导入"),
                   ),
                 ],
               )
@@ -228,13 +228,13 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
               children: <Widget>[
                 const Padding(
                   padding: EdgeInsets.all(10),
-                  child: Text("There is nothing here, select or import a course table first"),
+                  child: Text("未选择或未导入课表，请先选择或导入课表"),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     handleScreenChanged(ScreenSelected.import.value);
                   },
-                  child: const Text("Import"),
+                  child: const Text("导入"),
                 ),
               ],
             )
@@ -250,10 +250,10 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
             : const Text("Flutter Course Table");
         break;
       case 1:
-        title = const Text("Import Course Table");
+        title = const Text("导入课表");
         break;
       case 2:
-        title = const Text("Settings");
+        title = const Text("设置");
         break;
       default:
         title = const Text("Flutter Course Table");
@@ -664,7 +664,7 @@ class _BrightnessButton extends StatelessWidget {
     final isBright = Theme.of(context).brightness == Brightness.light;
     return Tooltip(
       preferBelow: showTooltipBelow,
-      message: 'Toggle brightness',
+      message: '更改显示模式',
       child: IconButton(
         icon: isBright
             ? const Icon(Icons.dark_mode_outlined)

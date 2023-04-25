@@ -44,7 +44,7 @@ class _NameTableDialogState extends State<NameTableDialog> {
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
-      title: const Text("Name the imported course table"),
+      title: const Text("为课表命名"),
       children: <Widget>[
         Container(
           padding: const EdgeInsets.all(64),
@@ -58,14 +58,14 @@ class _NameTableDialogState extends State<NameTableDialog> {
                   maxLength: 50,
                   onChanged: (value) { setState(() { name = value; }); },
                   validator: (value) {
-                    if (value == null || value.isEmpty) return "Please input course table name";
-                    if (widget.prefs.containsKey(value)) return "Current course table name existed";
+                    if (value == null || value.isEmpty) return "课表名不能为空";
+                    if (widget.prefs.containsKey(value)) return "该课表名已被占用";
                     return null;
                   },
                   decoration: const InputDecoration(
                     icon: Icon(Icons.note_alt_rounded),
                     border: UnderlineInputBorder(),
-                    labelText: "Input name",
+                    labelText: "输入课表名",
                   ),
                 ),
                 Padding(
@@ -78,7 +78,7 @@ class _NameTableDialogState extends State<NameTableDialog> {
                         padding: const EdgeInsets.all(10),
                         child: ElevatedButton(
                           onPressed: () { Navigator.pop(context, null); },
-                          child: const Text("Cancel"),
+                          child: const Text("取消"),
                       )),
                       Padding(
                         padding: const EdgeInsets.all(10),
@@ -87,7 +87,7 @@ class _NameTableDialogState extends State<NameTableDialog> {
                             if (!_formKey.currentState!.validate()) return;
                             Navigator.pop(context, name);
                           },
-                          child: const Text("Save"),
+                          child: const Text("保存"),
                         ),
                       ),
                     ],

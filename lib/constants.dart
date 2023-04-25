@@ -26,19 +26,19 @@ const List<NavigationDestination> appBarDestinations = [
   NavigationDestination(
     tooltip: '',
     icon: Icon(Icons.table_chart_outlined),
-    label: 'Course Table',
+    label: '课表',
     selectedIcon: Icon(Icons.table_chart),
   ),
   NavigationDestination(
     tooltip: '',
     icon: Icon(Icons.download_outlined),
-    label: 'Import',
+    label: '导入课表',
     selectedIcon: Icon(Icons.download),
   ),
   NavigationDestination(
     tooltip: '',
     icon: Icon(Icons.settings_outlined),
-    label: 'Settings',
+    label: '设置',
     selectedIcon: Icon(Icons.settings),
   ),
 ];
