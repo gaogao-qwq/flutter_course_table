@@ -29,6 +29,9 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 
 Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+
   if (Platform.isWindows || Platform.isLinux) {
     // Initialize FFI
     sqfliteFfiInit();
@@ -44,9 +47,6 @@ Future main() async {
         await database.execute("CREATE TABLE course_tables_table (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, json TEXT UNIQUE NOT NULL)");
     }
   ));
-
-  WidgetsFlutterBinding.ensureInitialized();
-  SharedPreferences prefs = await SharedPreferences.getInstance();
 
   final List<String> names = await getCourseTableNames(db);
   final String currCourseTableName = prefs.getString('currCourseTableName') ?? "";
