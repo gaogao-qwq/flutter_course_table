@@ -54,7 +54,7 @@ class _ChangeCurrentCourseTableState extends State<ChangeCurrentCourseTable> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               DropdownMenu(
-                label: const Text("Change Course Table"),
+                label: const Text("切换课表"),
                 leadingIcon: const Icon(Icons.table_chart),
                 initialSelection: widget.currCourseTableName,
                 dropdownMenuEntries: entries,

@@ -50,7 +50,7 @@ class _DeleteStoredCourseTableState extends State<DeleteStoredCourseTable> {
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
-      title: const Text("Delete selected course table"),
+      title: const Text("删除选择的课表"),
       children: [
         Container(
           padding: const EdgeInsets.all(10),
@@ -59,7 +59,7 @@ class _DeleteStoredCourseTableState extends State<DeleteStoredCourseTable> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               DropdownMenu(
-                label: const Text("Delete course table"),
+                label: const Text("删除课表"),
                 leadingIcon: const Icon(Icons.delete),
                 initialSelection: widget.currCourseTableName,
                 dropdownMenuEntries: entries,
@@ -74,7 +74,7 @@ class _DeleteStoredCourseTableState extends State<DeleteStoredCourseTable> {
                 children: [
                   ElevatedButton(
                     onPressed: () { Navigator.pop(context); },
-                    child: const Text("Back"),
+                    child: const Text("返回"),
                   ),
                   ElevatedButton(
                     onPressed: () async {
@@ -83,7 +83,7 @@ class _DeleteStoredCourseTableState extends State<DeleteStoredCourseTable> {
                       if (!mounted) return;
                       Navigator.pop(context);
                     },
-                    child: const Text("Delete"),
+                    child: const Text("删除"),
                   ),
               ]),
           ]),

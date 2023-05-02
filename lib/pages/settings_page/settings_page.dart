@@ -82,6 +82,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                 if (names.isEmpty) {
                   if (!mounted) return;
                   showInfoDialog(context, "Oops", "没有找到导入的课程表");
+                  return;
                 }
                 if (!mounted) return;
                 Navigator.push(context, DialogRoute(context: context, builder:
@@ -103,6 +104,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                 if (names.isEmpty) {
                   if (!mounted) return;
                   showInfoDialog(context, "Oops", "没有找到导入的课程表");
+                  return;
                 }
                 if (!mounted) return;
                 Navigator.push(context, DialogRoute(context: context, builder:
