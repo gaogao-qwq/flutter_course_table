@@ -18,21 +18,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_course_table_demo/constants.dart';
 import 'package:flutter_course_table_demo/internal/types/course_table.dart';
 import 'package:flutter_course_table_demo/internal/utils/course_table_json_handlers.dart';
+import 'package:flutter_course_table_demo/internal/utils/database_utils.dart';
 import 'package:flutter_course_table_demo/pages/home_page/course_table_widget_builder.dart';
 import 'package:flutter_course_table_demo/pages/import_page/import_page.dart';
 import 'package:flutter_course_table_demo/pages/settings_page/settings_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqlite3/common.dart' as sqlite3;
 
 class CourseTableHomePage extends StatefulWidget {
-  final SharedPreferences prefs;
+  final CourseTable? initCourseTable;
+  final List<String> names;
   final bool useLightMode;
   final void Function(bool useLightMode) handleBrightnessChange;
+  final SharedPreferences prefs;
+  final Database database;
 
   const CourseTableHomePage({
     super.key,
-    required this.prefs,
+    required this.initCourseTable,
+    required this.names,
     required this.useLightMode,
     required this.handleBrightnessChange,
+    required this.prefs,
+    required this.database,
   });
 
   @override
@@ -41,9 +50,12 @@ class CourseTableHomePage extends StatefulWidget {
 
 class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-  late String currCourseTableName;
-  late int currPage;
-  late CourseTable? courseTable;
+  String currCourseTableName = "";
+  int currPage = 0;
+  CourseTable? courseTable;
+  List<String> names = [];
+  List<DropdownMenuEntry<String>> tableEntries = [];
+  List<DropdownMenuEntry<int>> weekEntries = [];
   late final AnimationController controller;
   late final CurvedAnimation railAnimation;
   late final ReverseAnimation barAnimation;
@@ -56,9 +68,11 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
   void initState() {
     super.initState();
     currCourseTableName = widget.prefs.getString("currCourseTableName") ?? "";
-    courseTable = widget.prefs.getString(currCourseTableName) == null
-        ? null : jsonToCourseTable(widget.prefs.getString(currCourseTableName));
+    courseTable = widget.initCourseTable;
+    names = widget.names;
     currPage = getCurrCourseTableInitialPage();
+    tableEntries = getStoredCourseTableEntries();
+    weekEntries = getStoredCourseTableWeekEntries();
     controller = AnimationController(
       duration: Duration(milliseconds: transitionLength.toInt() * 2),
       value: 0,
@@ -142,13 +156,45 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     );
   }
 
-  void handleCurrCourseTableChange(String courseTableName) {
+  Future<void> handleCurrCourseTableChange(String courseTableName) async {
+    names = await getCourseTableNames(widget.database);
+    final jsonString = await getCourseTableJsonByName(widget.database, courseTableName);
     setState(() {
       currCourseTableName = courseTableName;
-      courseTable = jsonToCourseTable(widget.prefs.getString(courseTableName));
+      courseTable = jsonToCourseTable(jsonString);
+      tableEntries = getStoredCourseTableEntries();
       currPage = getCurrCourseTableInitialPage();
     });
     widget.prefs.setString("currCourseTableName", courseTableName);
+  }
+
+  Future<void> handleCourseTableDeleted(String courseTableName) async {
+    int cnt = await widget.database.delete('course_tables_table',
+        where: 'name = ?', whereArgs: [courseTableName]);
+    if (cnt < 1) {
+      throw sqlite3.SqliteException(sqlite3.SqlError.SQLITE_NOTFOUND,
+          'Nothing found by giving name');
+    }
+
+    names = await getCourseTableNames(widget.database);
+    setState(() {
+      tableEntries = getStoredCourseTableEntries();
+    });
+
+    if (currCourseTableName == courseTableName) {
+      if (names.isEmpty) {
+        setState(() {
+          currCourseTableName = "";
+          courseTable = null;
+          currPage = 0;
+        });
+        return;
+      }
+      setState(() {
+        handleCurrCourseTableChange(names[0]);
+        currPage = 0;
+      });
+    }
   }
 
   void handleCurrPageChanged(int page) {
@@ -159,17 +205,6 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
 
   void handleCourseTableDisposed() {
     currPage = getCurrCourseTableInitialPage();
-  }
-
-  void handleCurrCourseTableDeleted(String courseTableName) {
-    widget.prefs.remove(courseTableName);
-    if (currCourseTableName == courseTableName) {
-      setState(() {
-        currCourseTableName = "";
-        courseTable = null;
-        currPage = 0;
-      });
-    }
   }
 
   void handleScreenChanged(int screenSelected) {
@@ -206,19 +241,20 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
               courseTable: courseTable!,
               handleCurrPageChanged: handleCurrPageChanged,
               handleCourseTableDisposed: handleCourseTableDisposed,
-              prefs: widget.prefs,
             );
       case ScreenSelected.import:
         return ImportTablePage(
           handleCurrCourseTableChange: handleCurrCourseTableChange,
           prefs: widget.prefs,
+          database: widget.database,
         );
       case ScreenSelected.settings:
         return SettingsPage(
           currCourseTableName: currCourseTableName,
-          prefs: widget.prefs,
           handleChangeCurrCourseTable: handleCurrCourseTableChange,
-          handleDeleteCurrCourseTable: handleCurrCourseTableDeleted,
+          handleDeleteCurrCourseTable: handleCourseTableDeleted,
+          prefs: widget.prefs,
+          database: widget.database,
         );
       default:
         return Expanded(
@@ -246,7 +282,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     Widget title;
     switch (screenIndex) {
       case 0:
-        title = currCourseTableName != "" ? _appBarTitle()
+        title = names.isNotEmpty ? _appBarTitle()
             : const Text("Flutter Course Table");
         break;
       case 1:
@@ -286,10 +322,10 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
               inputDecorationTheme: const InputDecorationTheme(
                   isCollapsed: true
               ),
-              dropdownMenuEntries: getStoredCourseTableEntries(),
-              onSelected: (value) {
+              dropdownMenuEntries: tableEntries,
+              onSelected: (value) async {
                 if (value == null || value.isEmpty) return;
-                handleCurrCourseTableChange(value);
+                await handleCurrCourseTableChange(value);
               },
             ),
             Padding(
@@ -301,7 +337,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
                 inputDecorationTheme: const InputDecorationTheme(
                     isCollapsed: true
                 ),
-                dropdownMenuEntries: getStoredCourseTableWeekEntries(),
+                dropdownMenuEntries: weekEntries,
                 onSelected: (value) {
                   if (value == null) return;
                   handleCurrPageChanged(value);
@@ -353,8 +389,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
 
   List<DropdownMenuEntry<String>> getStoredCourseTableEntries() {
     List<DropdownMenuEntry<String>> items = [];
-    Set<String> keys = widget.prefs.getKeys();
-    for (var element in keys) {
+    for (var element in names) {
       if (element != 'currCourseTableName' && element != 'useLightMode') {
         items.add(DropdownMenuEntry(value: element, label: element));
       }

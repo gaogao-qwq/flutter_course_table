@@ -30,13 +30,15 @@ class SelectSemesterDialog extends StatefulWidget{
 }
 
 class _SelectSemesterDialogState extends State<SelectSemesterDialog> {
-  int? selectedYearIndex;
-  String? selectedSemester;
+  late int selectedYearIndex;
+  late String selectedSemester;
+  late String selectedYear;
 
   @override
   void initState() {
     selectedYearIndex = widget.semesterList.length - 1;
-    selectedSemester = widget.semesterList[selectedYearIndex!].semesterId1;
+    selectedSemester = widget.semesterList[selectedYearIndex].semesterId1;
+    selectedYear = widget.semesterList[selectedYearIndex].value;
     super.initState();
   }
 
@@ -55,28 +57,18 @@ class _SelectSemesterDialogState extends State<SelectSemesterDialog> {
                   icon: const Icon(Icons.arrow_downward),
                   elevation: 16,
                   borderRadius: const BorderRadius.all(Radius.circular(4)),
-                  style: const TextStyle(color: Colors.deepPurple),
-                  underline: Container(
-                    height: 2,
-                    color: Colors.deepPurpleAccent,
-                  ),
                   items: getYearItems(),
                   value: selectedYearIndex.toString(),
                   onChanged: (value) {
                     int? year = int.parse(value ?? "-1");
                     setState(() { selectedYearIndex = year == -1 ? selectedYearIndex : year; });
-                    selectedSemester = widget.semesterList[selectedYearIndex!].semesterId1;
+                    selectedSemester = widget.semesterList[selectedYearIndex].semesterId1;
                   },
                 ),
                 DropdownButton(
                   icon: const Icon(Icons.arrow_downward),
                   elevation: 16,
                   borderRadius: const BorderRadius.all(Radius.circular(4)),
-                  style: const TextStyle(color: Colors.deepPurple),
-                  underline: Container(
-                    height: 2,
-                    color: Colors.deepPurpleAccent,
-                  ),
                   items: getSemesterItems(),
                   value: selectedSemester,
                   onChanged: (value) {
@@ -87,7 +79,7 @@ class _SelectSemesterDialogState extends State<SelectSemesterDialog> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context, selectedSemester);
+                    Navigator.pop(context, {'selectedSemester': selectedSemester, 'selectedYear': selectedYear});
                   },
                   style: const ButtonStyle(
                     backgroundColor: MaterialStatePropertyAll<Color>(Colors.green),
@@ -112,8 +104,8 @@ class _SelectSemesterDialogState extends State<SelectSemesterDialog> {
 
   List<DropdownMenuItem<String>> getSemesterItems() {
     var items = <DropdownMenuItem<String>>[];
-    items.add(DropdownMenuItem(value: widget.semesterList[selectedYearIndex!].semesterId1, child: const Text("第1学期")));
-    items.add(DropdownMenuItem(value: widget.semesterList[selectedYearIndex!].semesterId2, child: const Text("第2学期")));
+    items.add(DropdownMenuItem(value: widget.semesterList[selectedYearIndex].semesterId1, child: const Text("第1学期")));
+    items.add(DropdownMenuItem(value: widget.semesterList[selectedYearIndex].semesterId2, child: const Text("第2学期")));
     return items;
   }
 }

@@ -15,18 +15,20 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 
 class DeleteStoredCourseTable extends StatefulWidget {
-  final SharedPreferences prefs;
-  final String? currCourseTableName;
-  final void Function(String courseTableName) handleDeleteCurrCourseTable;
+  final String currCourseTableName;
+  final List<String> names;
+  final Future<void> Function(String courseTableName) handleDeleteCurrCourseTable;
+  final Database database;
 
   const DeleteStoredCourseTable({
     super.key,
-    required this.prefs,
-    this.currCourseTableName,
+    required this.names,
+    required this.currCourseTableName,
     required this.handleDeleteCurrCourseTable,
+    required this.database,
   });
 
   @override
@@ -34,12 +36,15 @@ class DeleteStoredCourseTable extends StatefulWidget {
 }
 
 class _DeleteStoredCourseTableState extends State<DeleteStoredCourseTable> {
-  late String? selectedCourseTableName;
+  String selectedCourseTableName = "";
+  List<DropdownMenuEntry<String>> entries = [];
 
   @override
   void initState() {
     super.initState();
     selectedCourseTableName = widget.currCourseTableName;
+    entries = List.generate(widget.names.length, (index) =>
+        DropdownMenuEntry(value: widget.names[index], label: widget.names[index]));
   }
 
   @override
@@ -57,9 +62,9 @@ class _DeleteStoredCourseTableState extends State<DeleteStoredCourseTable> {
                 label: const Text("Delete course table"),
                 leadingIcon: const Icon(Icons.delete),
                 initialSelection: widget.currCourseTableName,
-                dropdownMenuEntries: getStoredCourseTableEntries(),
+                dropdownMenuEntries: entries,
                 onSelected: (value) {
-                  selectedCourseTableName = value;
+                  selectedCourseTableName = value ?? "";
                 },
               ),
               const Divider(),
@@ -72,9 +77,10 @@ class _DeleteStoredCourseTableState extends State<DeleteStoredCourseTable> {
                     child: const Text("Back"),
                   ),
                   ElevatedButton(
-                    onPressed: () {
-                      if (selectedCourseTableName == null || selectedCourseTableName!.isEmpty) return;
-                      widget.handleDeleteCurrCourseTable(selectedCourseTableName!);
+                    onPressed: () async {
+                      if (selectedCourseTableName.isEmpty) return;
+                      await widget.handleDeleteCurrCourseTable(selectedCourseTableName);
+                      if (!mounted) return;
                       Navigator.pop(context);
                     },
                     child: const Text("Delete"),
@@ -84,17 +90,6 @@ class _DeleteStoredCourseTableState extends State<DeleteStoredCourseTable> {
         )
       ],
     );
-  }
-
-  List<DropdownMenuEntry<String>> getStoredCourseTableEntries() {
-    List<DropdownMenuEntry<String>> items = [];
-    Set<String> keys = widget.prefs.getKeys();
-    for (var element in keys) {
-      if (element != 'currCourseTableName' && element != 'useLightMode') {
-        items.add(DropdownMenuEntry(value: element, label: element));
-      }
-    }
-    return items;
   }
 }
 

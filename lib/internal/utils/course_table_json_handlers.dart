@@ -17,14 +17,14 @@
 import 'dart:convert';
 import 'package:flutter_course_table_demo/internal/types/course_table.dart';
 
-CourseTable? apiJsonToCourseTable(String? jsonString, String firstWeekDate) {
+CourseTable? apiJsonToCourseTable(String? jsonString, String firstWeekDate, String name) {
   if (jsonString == null || jsonString.isEmpty) return null;
-  return CourseTable.fromJson(jsonString, firstWeekDate);
+  return CourseTable.fromJson(jsonString, firstWeekDate, name);
 }
 
 CourseTable? jsonToCourseTable(String? jsonString) {
   if (jsonString == null || jsonString.isEmpty) return null;
-  return CourseTable.fromJson(jsonString, null);
+  return CourseTable.fromJson(jsonString, null, null);
 }
 
 String courseTableToJson(CourseTable courseTable) {

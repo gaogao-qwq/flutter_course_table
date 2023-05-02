@@ -15,16 +15,16 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 
 class NameTableDialog extends StatefulWidget {
   final String initName;
-  final SharedPreferences prefs;
+  final Database database;
 
   const NameTableDialog({
     super.key,
     required this.initName,
-    required this.prefs,
+    required this.database,
   });
 
   @override
@@ -34,10 +34,21 @@ class NameTableDialog extends StatefulWidget {
 class _NameTableDialogState extends State<NameTableDialog> {
   final _formKey = GlobalKey<FormState>();
   String? name;
+  late bool isContainedName;
+
+  Future<void> _load() async {
+    final list = await widget.database.query('course_tables_table',
+        columns: ['name'],
+        where: 'name = ?',
+        whereArgs: [widget.initName]);
+    isContainedName = list.isEmpty ? false : true;
+  }
 
   @override
   void initState() {
     name = widget.initName;
+    isContainedName = false;
+    _load();
     super.initState();
   }
 
@@ -54,12 +65,21 @@ class _NameTableDialogState extends State<NameTableDialog> {
               children: <Widget>[
                 TextFormField(
                   autofocus: true,
-                  initialValue: name,
+                  initialValue: widget.initName,
                   maxLength: 50,
-                  onChanged: (value) { setState(() { name = value; }); },
+                  onChanged: (value) async {
+                    final list = await widget.database.query('course_tables_table',
+                        columns: ['name'],
+                        where: 'name = ?',
+                        whereArgs: [value]);
+                    setState(() {
+                      isContainedName = list.isEmpty ? false : true;
+                      name = value;
+                    });
+                  },
                   validator: (value) {
                     if (value == null || value.isEmpty) return "课表名不能为空";
-                    if (widget.prefs.containsKey(value)) return "该课表名已被占用";
+                    if (isContainedName) return "该课表名已被占用";
                     return null;
                   },
                   decoration: const InputDecoration(

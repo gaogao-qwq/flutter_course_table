@@ -18,13 +18,15 @@ import 'dart:convert';
 import 'course_info.dart';
 
 class CourseTable {
-  String firstWeekDate;
+  final String name;
+  final String firstWeekDate;
   final int? row;
   final int? col;
   final int? week;
   final List<List<CourseInfo>> data;
 
   CourseTable({
+    required this.name,
     required this.firstWeekDate,
     this.row,
     this.col,
@@ -32,7 +34,7 @@ class CourseTable {
     required this.data,
   });
 
-  factory CourseTable.fromJson(String jsonString, String? firstWeekDate) {
+  factory CourseTable.fromJson(String jsonString, String? firstWeekDate, String? name) {
     final jsonMap = jsonDecode(jsonString);
     List<dynamic> jsonData;
     jsonMap['data'] is String
@@ -47,6 +49,7 @@ class CourseTable {
       if (i != jsonData.length-1) data.add(<CourseInfo>[]);
     }
     return CourseTable(
+      name: name ?? jsonMap['name'],
       firstWeekDate: firstWeekDate ?? jsonMap['firstWeekDate'],
       row: jsonMap['row'],
       col: jsonMap['col'],
@@ -56,6 +59,7 @@ class CourseTable {
   }
 
   static Map<String, dynamic> toJson(CourseTable v) => {
+    'name': v.name,
     'firstWeekDate': v.firstWeekDate,
     'row': v.row,
     'col': v.col,

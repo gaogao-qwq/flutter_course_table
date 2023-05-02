@@ -20,6 +20,7 @@ import 'package:flutter_course_table_demo/internal/types/course_table.dart';
 import 'package:flutter_course_table_demo/internal/types/semester_info.dart';
 import 'package:flutter_course_table_demo/internal/handlers/response_handlers.dart';
 import 'package:flutter_course_table_demo/internal/utils/course_table_json_handlers.dart';
+import 'package:flutter_course_table_demo/internal/utils/database_utils.dart';
 import 'package:flutter_course_table_demo/pages/import_page/name_table_dialog.dart';
 import 'package:flutter_course_table_demo/pages/import_page/select_first_week_date_dialog.dart';
 import 'package:flutter_course_table_demo/pages/import_page/select_semester_dialog.dart';
@@ -28,15 +29,18 @@ import 'package:flutter_course_table_demo/utils/show_info_dialog.dart';
 
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 
 
 class ImportTablePage extends StatefulWidget {
-  final Function(String courseTableName) handleCurrCourseTableChange;
+  final Future<void> Function(String courseTableName) handleCurrCourseTableChange;
   final SharedPreferences prefs;
+  final Database database;
   const ImportTablePage({
     super.key,
     required this.handleCurrCourseTableChange,
     required this.prefs,
+    required this.database,
   });
 
   @override
@@ -175,26 +179,52 @@ class _ImportTablePageState extends State<ImportTablePage> {
                             }
 
                             // 等待用户选择要导入的学期
-                            final semesterId = await Navigator.push(context,
+                            Map<String, String>? semester = await Navigator.push(context,
                                 DialogRoute(context: context, builder: (context) {
                                   return SelectSemesterDialog(semesterList: semesterList!);
                                 }));
-                            if (semesterId == null || semesterId.isEmpty) {
+                            if (semester == null) {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
                               showInfoDialog(context, "注意", "由于用户取消，课表未导入");
+                              return;
                             }
 
                             // 等待用户选择课表第一周日期
                             if (!mounted) return;
-                            final firstWeekDate = await Navigator.push(context,
+                            String? firstWeekDate = await Navigator.push(context,
                                 DialogRoute(context: context, builder: (context) {
-                                  return const FirstWeekDateSelector();
+                                  return FirstWeekDateSelector(selectedYear: semester['selectedYear'] ?? "");
                                 }));
                             if (firstWeekDate == null || firstWeekDate.isEmpty) {
                               if (!mounted) return;
                               showInfoDialog(context, "注意", "未指定第一周日期，课表未导入");
+                              return;
+                            }
+
+                            // 等待用户输入课程表名称
+                            if (!mounted) return;
+                            String? courseTableName = await Navigator.push(context,
+                                DialogRoute(context: context, builder: (context) {
+                                  String initName = "";
+                                  for (int i = 0; i < semesterList!.length; i++) {
+                                    if (semester['selectedSemester'] == semesterList[i].semesterId1) {
+                                      initName = "${semesterList[i].value}学年第1学期课表";
+                                      break;
+                                    }
+                                    if (semester['selectedSemester'] == semesterList[i].semesterId2) {
+                                      initName = "${semesterList[i].value}学年第2学期课表";
+                                      break;
+                                    }
+                                  }
+                                  return NameTableDialog(initName: initName, database: widget.database);
+                                }));
+                            if (courseTableName == null || courseTableName.isEmpty) {
+                              if (!mounted) return;
+                              if (_isLoaderVisible) context.loaderOverlay.hide();
+                              setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
+                              showInfoDialog(context, "注意", "由于用户取消，课表未导入");
                               return;
                             }
 
@@ -205,7 +235,9 @@ class _ImportTablePageState extends State<ImportTablePage> {
 
                             CourseTable? courseTable;
                             try {
-                              courseTable = await fetchCourseTable(username, password, semesterId, firstWeekDate);
+                              courseTable = await fetchCourseTable(
+                                  username, password, semester['selectedSemester'],
+                                  firstWeekDate, courseTableName);
                             } catch(e) {
                               if (!mounted) return;
                               if (_isLoaderVisible) context.loaderOverlay.hide();
@@ -232,47 +264,26 @@ class _ImportTablePageState extends State<ImportTablePage> {
                             context.loaderOverlay.show(widget: const LoadingOverlay(loadingText: '保存中...',));
                             setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
 
-                            // 等待用户输入课程表名称
-                            String? courseTableName = await Navigator.push(context,
-                                DialogRoute(context: context, builder: (context) {
-                                  String initName = "";
-                                  for (int i = 0; i < semesterList!.length; i++) {
-                                    if (semesterId == semesterList[i].semesterId1) {
-                                      initName = "${semesterList[i].value}学年第1学期课表";
-                                      break;
-                                    }
-                                    if (semesterId == semesterList[i].semesterId2) {
-                                      initName = "${semesterList[i].value}学年第2学期课表";
-                                      break;
-                                    }
-                                  }
-                                  return NameTableDialog(initName: initName, prefs: widget.prefs);
-                                }));
-                            if (courseTableName == null || courseTableName.isEmpty) {
-                              if (!mounted) return;
-                              if (_isLoaderVisible) context.loaderOverlay.hide();
-                              setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showInfoDialog(context, "注意", "由于用户取消，课表未导入");
-                              return;
-                            }
-
                             String jsonString;
                             try {
                               jsonString = courseTableToJson(courseTable);
                             } catch (e) {
                               if(!mounted) return;
-                              showInfoDialog(context, "Oops", "$e");
+                              showInfoDialog(context, "Oops", "发生了错误：$e");
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
                               return;
                             }
 
-                            // 存入 shared preferences
-                            if (!await widget.prefs.setString(courseTableName, jsonString)) {
-                              if (!mounted) return;
+                            // 存入 Database
+                            try {
+                              await insertCourseTable(widget.database, courseTableName, jsonString);
+                            } catch (e) {
+                              if(!mounted) return;
+                              showInfoDialog(context, "Oops", "发生了错误：$e");
                               if (_isLoaderVisible) context.loaderOverlay.hide();
                               setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
-                              showInfoDialog(context, "Oops", "未正常保存课表，请检查设备是否有足够空间");
+                              return;
                             }
 
                             if (!mounted) return;
@@ -280,7 +291,9 @@ class _ImportTablePageState extends State<ImportTablePage> {
                             setState(() { _isLoaderVisible = context.loaderOverlay.visible; });
                             // End saving...
 
-                            widget.handleCurrCourseTableChange(courseTableName);
+                            await widget.handleCurrCourseTableChange(courseTableName);
+                            if (!mounted) return;
+                            showInfoDialog(context, "喜报", "导入成功");
                           },
                           child: const Text('导入', style: TextStyle(fontSize: 18))
                         ),

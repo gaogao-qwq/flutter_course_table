@@ -16,22 +16,27 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table_demo/constants.dart';
+import 'package:flutter_course_table_demo/internal/utils/database_utils.dart';
 import 'package:flutter_course_table_demo/pages/settings_page/change_current_course_table_dialog.dart';
 import 'package:flutter_course_table_demo/pages/settings_page/delete_stored_course_table_dialog.dart';
+import 'package:flutter_course_table_demo/utils/show_info_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 
 class SettingsPage extends StatefulWidget {
-  final SharedPreferences prefs;
   final String currCourseTableName;
-  final void Function(String courseTableName) handleChangeCurrCourseTable;
-  final void Function(String courseTableName) handleDeleteCurrCourseTable;
+  final Future<void> Function(String courseTableName) handleChangeCurrCourseTable;
+  final Future<void> Function(String courseTableName) handleDeleteCurrCourseTable;
+  final SharedPreferences prefs;
+  final Database database;
 
   const SettingsPage({
     super.key,
-    required this.prefs,
     required this.currCourseTableName,
     required this.handleChangeCurrCourseTable,
     required this.handleDeleteCurrCourseTable,
+    required this.prefs,
+    required this.database,
   });
 
   @override
@@ -71,67 +76,48 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
           children: [
             ListTile(
               leading: const Icon(Icons.table_chart),
-              title: const Text("Change current course table"),
-              onTap: () {
-                if (widget.prefs.getKeys().isEmpty) {
-                  showDialog(context: context, builder: (context) {
-                    return AlertDialog(
-                      title: const Text("Oops"),
-                      content: const Text(
-                          "You haven't import any course table yet"
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                            onPressed: () => {Navigator.of(context).pop()},
-                            child: const Text("OK")
-                        )
-                      ],
-                    );
-                  });
+              title: const Text("切换当前课表"),
+              onTap: () async {
+                final names = await getCourseTableNames(widget.database);
+                if (names.isEmpty) {
+                  if (!mounted) return;
+                  showInfoDialog(context, "Oops", "没有找到导入的课程表");
                 }
+                if (!mounted) return;
                 Navigator.push(context, DialogRoute(context: context, builder:
                    (context) => ChangeCurrentCourseTable(
-                  prefs: widget.prefs,
                   currCourseTableName: widget.currCourseTableName,
+                  names: names,
                   handleChangeCurrCourseTable: widget.handleChangeCurrCourseTable,
                 )));
               },
             ),
             ListTile(
               leading: const Icon(Icons.delete),
-              title: const Text("Delete course table"),
+              title: const Text("删除课程表"),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
               ),
-              onTap: () {
-                if (widget.prefs.getKeys().isEmpty) {
-                  showDialog(context: context, builder: (context) {
-                    return AlertDialog(
-                      title: const Text("Oops"),
-                      content: const Text(
-                          "You haven't import any course table yet"
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                            onPressed: () => {Navigator.of(context).pop()},
-                            child: const Text("OK")
-                        )
-                      ],
-                    );
-                  });
+              onTap: () async {
+                final names = await getCourseTableNames(widget.database);
+                if (names.isEmpty) {
+                  if (!mounted) return;
+                  showInfoDialog(context, "Oops", "没有找到导入的课程表");
                 }
+                if (!mounted) return;
                 Navigator.push(context, DialogRoute(context: context, builder:
                     (context) => DeleteStoredCourseTable(
-                  prefs: widget.prefs,
+                  names: names,
                   currCourseTableName: widget.currCourseTableName,
                   handleDeleteCurrCourseTable: widget.handleDeleteCurrCourseTable,
+                  database: widget.database,
                 )));
               },
             ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.info),
-              title: const Text("About"),
+              title: const Text("关于"),
               onTap: () {
                 showAboutDialog(
                   context: context,

@@ -17,22 +17,27 @@
 import 'package:flutter/material.dart';
 
 class FirstWeekDateSelector extends StatefulWidget {
-  const FirstWeekDateSelector({Key? key}) : super(key: key);
+  final String selectedYear;
+
+  const FirstWeekDateSelector({
+    super.key,
+    required this.selectedYear,
+  });
 
   @override
   State<FirstWeekDateSelector> createState() => _FirstWeekDateSelectorState();
 }
 
 class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
-  final DateTime currTime = DateTime.now();
   late int currYear;
   late DateTime currWeek;
 
   @override
   void initState() {
     super.initState();
-    currYear = currTime.year;
-    currWeek = DateTime(currYear);
+    final yearString = widget.selectedYear.substring(0, widget.selectedYear.indexOf('-'));
+    currYear = int.parse(yearString);
+    currWeek = DateTime(currYear, DateTime.august, 1);
     while (currWeek.weekday != DateTime.monday) {
       currWeek = currWeek.add(const Duration(days: 1));
     }
@@ -41,7 +46,7 @@ class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
-      title: const Text('Select first week date'),
+      title: const Text('选择学期第一周日期'),
       children: [
         Container(
           padding: const EdgeInsets.all(16),
@@ -49,16 +54,11 @@ class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
             icon: const Icon(Icons.arrow_downward),
             elevation: 16,
             borderRadius: const BorderRadius.all(Radius.circular(8)),
-            style: const TextStyle(color: Colors.deepPurple),
-            underline: Container(
-              height: 2,
-              color: Colors.deepPurpleAccent,
-            ),
             value: currYear,
             items: getYearItems(),
             onChanged: (value) { setState(() {
               currYear = value ?? currYear;
-              currWeek = DateTime(currYear);
+              currWeek = DateTime(currYear, DateTime.august, 1);
               while (currWeek.weekday != DateTime.monday) {
                 currWeek = currWeek.add(const Duration(days: 1));
               }
@@ -71,11 +71,6 @@ class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
             icon: const Icon(Icons.arrow_downward),
             elevation: 16,
             borderRadius: const BorderRadius.all(Radius.circular(8)),
-            style: const TextStyle(color: Colors.deepPurple),
-            underline: Container(
-              height: 2,
-              color: Colors.deepPurpleAccent,
-            ),
             value: currWeek,
             items: getWeekItems(currYear),
             onChanged: (value) { setState(() { currWeek = value ?? currWeek; }); },
@@ -131,7 +126,7 @@ class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
   }
 
   List<DateTime> getWeekList(int year) {
-    DateTime start = DateTime(year, 1, 1), end = DateTime(year+1, 12, 31);
+    DateTime start = DateTime(year, DateTime.august, 1), end = DateTime(year+1, DateTime.july, 31);
     final days = end.difference(start).inDays;
     List<DateTime> weeks = [];
     for (int i = 0; i < days; i++, start = start.add(const Duration(days: 1))) {

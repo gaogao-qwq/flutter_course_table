@@ -15,17 +15,16 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ChangeCurrentCourseTable extends StatefulWidget {
-  final SharedPreferences prefs;
   final String currCourseTableName;
-  final void Function(String courseTableName) handleChangeCurrCourseTable;
+  final List<String> names;
+  final Future<void> Function(String courseTableName) handleChangeCurrCourseTable;
 
   const ChangeCurrentCourseTable({
     super.key,
-    required this.prefs,
     required this.currCourseTableName,
+    required this.names,
     required this.handleChangeCurrCourseTable,
   });
 
@@ -34,15 +33,19 @@ class ChangeCurrentCourseTable extends StatefulWidget {
 }
 
 class _ChangeCurrentCourseTableState extends State<ChangeCurrentCourseTable> {
+  List<DropdownMenuEntry<String>> entries = [];
+
   @override
   void initState() {
     super.initState();
+    entries = List.generate(widget.names.length, (index) =>
+        DropdownMenuEntry(value: widget.names[index], label: widget.names[index]));
   }
 
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
-      title: const Text("Change selected course table"),
+      title: const Text("切换当前课表"),
       children: [
         Container(
           padding: const EdgeInsets.all(10),
@@ -54,7 +57,7 @@ class _ChangeCurrentCourseTableState extends State<ChangeCurrentCourseTable> {
                 label: const Text("Change Course Table"),
                 leadingIcon: const Icon(Icons.table_chart),
                 initialSelection: widget.currCourseTableName,
-                dropdownMenuEntries: getStoredCourseTableEntries(),
+                dropdownMenuEntries: entries,
                 onSelected: (value) {
                   if (value == null || value.isEmpty) return;
                   widget.handleChangeCurrCourseTable(value);
@@ -73,17 +76,6 @@ class _ChangeCurrentCourseTableState extends State<ChangeCurrentCourseTable> {
         )
       ],
     );
-  }
-
-  List<DropdownMenuEntry<String>> getStoredCourseTableEntries() {
-    List<DropdownMenuEntry<String>> items = [];
-    Set<String> keys = widget.prefs.getKeys();
-    for (var element in keys) {
-      if (element != 'currCourseTableName' && element != 'useLightMode') {
-        items.add(DropdownMenuEntry(value: element, label: element));
-      }
-    }
-    return items;
   }
 }
 

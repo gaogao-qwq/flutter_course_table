@@ -18,7 +18,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table_demo/internal/types/course_table.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_course_table_demo/internal/types/course_info.dart';
 import 'package:spannable_grid/spannable_grid.dart';
 
@@ -28,7 +27,6 @@ class CourseTableWidget extends StatefulWidget {
   final CourseTable courseTable;
   final void Function(int) handleCurrPageChanged;
   final void Function() handleCourseTableDisposed;
-  final SharedPreferences prefs;
 
   const CourseTableWidget({
     super.key,
@@ -37,7 +35,6 @@ class CourseTableWidget extends StatefulWidget {
     required this.courseTable,
     required this.handleCurrPageChanged,
     required this.handleCourseTableDisposed,
-    required this.prefs,
   });
 
   @override

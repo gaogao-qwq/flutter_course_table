@@ -58,8 +58,11 @@ Future<List<SemesterInfo>> parseSemesterInfo(Uint8List responseBody) async {
   return json.map<SemesterInfo>((json) => SemesterInfo.fromJson(json)).toList();
 }
 
-Future<CourseTable?> fetchCourseTable(String? username, String? password, String? semesterId, String? firstWeekDate) async {
-  if (username == null || password == null || semesterId == null || firstWeekDate == null) return null;
+Future<CourseTable?> fetchCourseTable(
+    String? username, String? password, String? semesterId,
+    String? firstWeekDate, String? name) async {
+  if (username == null || password == null || semesterId == null
+      || firstWeekDate == null || name == null) return null;
   http.Response response = await http.get(
     Uri.parse('http://106.55.226.218:56789/course-table'),
     headers: {
@@ -70,11 +73,11 @@ Future<CourseTable?> fetchCourseTable(String? username, String? password, String
 
   if (response.statusCode != 200) return null;
 
-  return await parseCourseInfo(response.bodyBytes, firstWeekDate);
+  return await parseCourseInfo(response.bodyBytes, firstWeekDate, name);
 }
 
-Future<CourseTable?> parseCourseInfo(Uint8List responseBody, String firstWeekDate) async {
+Future<CourseTable?> parseCourseInfo(Uint8List responseBody, String firstWeekDate, String name) async {
   var responseString = const Utf8Decoder().convert(responseBody);
 
-  return apiJsonToCourseTable(responseString, firstWeekDate);
+  return apiJsonToCourseTable(responseString, firstWeekDate, name);
 }
