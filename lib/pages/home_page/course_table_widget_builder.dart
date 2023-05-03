@@ -96,14 +96,22 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
     int col = widget.courseTable.col ?? 0;
 
     DateTime dateIterator = DateTime.parse(widget.courseTable.firstWeekDate);
-    List<Text> weekList = [
+    List<Widget> weekList = [
+      const Spacer(flex: 3),
       const Text("周一"),
+      const Spacer(flex: 3),
       const Text("周二"),
+      const Spacer(flex: 3),
       const Text("周三"),
+      const Spacer(flex: 3),
       const Text("周四"),
+      const Spacer(flex: 3),
       const Text("周五"),
+      const Spacer(flex: 3),
       const Text("周六"),
-      const Text("周日")];
+      const Spacer(flex: 3),
+      const Text("周日"),
+      const Spacer(flex: 1)];
 
     List<List<CourseInfo>> courseTableData = widget.courseTable.data;
     List<List<List<CourseInfo>>> courseTableList = List<List<List<CourseInfo>>>
@@ -112,11 +120,14 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
         courseTableList[courseTableData[i][0].weekNum - 1].add(courseTableData[i]);
     }
 
+    List<Widget> courseNums = List.generate(widget.courseTable.row!, (index) =>
+        Text("第${index+1}节"));
+
     List<Container> tableList = [];
     // 遍历周数
     for (int i = 0; i < weekNums; i++) {
       List<SpannableGridCellData> gridCells = [];
-      List<Text> calendars = [];
+      List<Widget> calendars = [];
 
       // 遍历每周课时列表
       for (int j = 0; j < courseTableList[i].length; j++) {
@@ -148,13 +159,15 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
 
       // 遍历每周每天日期
       for (int weekday = 1; weekday <= 7; weekday++) {
+        calendars.add(const Spacer(flex: 3));
         calendars.add(Text("${dateIterator.month}/${dateIterator.day}"));
         dateIterator = dateIterator.add(const Duration(days: 1));
       }
+      calendars.add(const Spacer(flex: 1));
 
       tableList.add(
         Container(
-          padding: const EdgeInsets.only(left: 2, right: 2),
+          padding: const EdgeInsets.all(2),
           child: Column(
             children: [
               ListTile(
@@ -163,28 +176,33 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
                   borderRadius: BorderRadius.all(Radius.circular(8)),
                 ),
                 title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: calendars,
                 ),
                 subtitle: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: weekList,
                 ),
               ),
-              Expanded(child: ListView(children: [
-                Card(
-                  child: (
-                      SpannableGrid(
-                        rows: row,
-                        columns: col,
-                        style: SpannableGridStyle(
-                          backgroundColor: colorScheme.primary.withOpacity(0.1),
-                          spacing: 0,
+              Expanded(child: ListView(
+                children: [
+                  IntrinsicHeight(child: Row(
+                    children: [
+                      Card(child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: courseNums)),
+                      Expanded(flex: 8, child: Card(
+                        child: SpannableGrid(
+                          rows: row,
+                          columns: col,
+                          style: SpannableGridStyle(
+                            backgroundColor: colorScheme.primary.withOpacity(0.1),
+                            spacing: 0,
+                          ),
+                          cells: gridCells,
                         ),
-                        cells: gridCells,
-                      )
-                  ),
-              )])),
+                      ))
+                    ],
+                  )),
+              ])),
             ],
           ),
         )
