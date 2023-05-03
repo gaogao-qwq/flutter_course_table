@@ -97,21 +97,14 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
 
     DateTime dateIterator = DateTime.parse(widget.courseTable.firstWeekDate);
     List<Widget> weekList = [
-      const Spacer(flex: 3),
+      const Text("        "),
       const Text("周一"),
-      const Spacer(flex: 3),
       const Text("周二"),
-      const Spacer(flex: 3),
       const Text("周三"),
-      const Spacer(flex: 3),
       const Text("周四"),
-      const Spacer(flex: 3),
       const Text("周五"),
-      const Spacer(flex: 3),
       const Text("周六"),
-      const Spacer(flex: 3),
-      const Text("周日"),
-      const Spacer(flex: 1)];
+      const Text("周日")];
 
     List<List<CourseInfo>> courseTableData = widget.courseTable.data;
     List<List<List<CourseInfo>>> courseTableList = List<List<List<CourseInfo>>>
@@ -121,7 +114,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
     }
 
     List<Widget> courseNums = List.generate(widget.courseTable.row!, (index) =>
-        Text("第${index+1}节"));
+        Text("${index+1}"));
 
     List<Container> tableList = [];
     // 遍历周数
@@ -158,12 +151,11 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
       }
 
       // 遍历每周每天日期
+      calendars.add(Text("${dateIterator.month}月"));
       for (int weekday = 1; weekday <= 7; weekday++) {
-        calendars.add(const Spacer(flex: 3));
         calendars.add(Text("${dateIterator.month}/${dateIterator.day}"));
         dateIterator = dateIterator.add(const Duration(days: 1));
       }
-      calendars.add(const Spacer(flex: 1));
 
       tableList.add(
         Container(
@@ -176,9 +168,11 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
                   borderRadius: BorderRadius.all(Radius.circular(8)),
                 ),
                 title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: calendars,
                 ),
                 subtitle: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: weekList,
                 ),
               ),
@@ -189,7 +183,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
                       Card(child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: courseNums)),
-                      Expanded(flex: 8, child: Card(
+                      Expanded(child: Card(
                         child: SpannableGrid(
                           rows: row,
                           columns: col,
