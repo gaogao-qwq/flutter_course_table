@@ -97,7 +97,6 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
 
     DateTime dateIterator = DateTime.parse(widget.courseTable.firstWeekDate);
     List<Widget> weekList = [
-      const Text("        "),
       const Text("周一"),
       const Text("周二"),
       const Text("周三"),
@@ -119,7 +118,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
     List<Container> tableList = [];
     // 遍历周数
     for (int i = 0; i < weekNums; i++) {
-      List<SpannableGridCellData> gridCells = [];
+      List<SpannableGridCellData> courseTableGridCells = [];
       List<Widget> calendars = [];
 
       // 遍历每周课时列表
@@ -134,7 +133,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
           id += "_${i}_${courseTableList[i][j][k].dateNum}_${courseTableList[i][j][k].sectionBegin}";
           text += "${courseTableList[i][j][k].courseName}, ${courseTableList[i][j][k].locationName}";
         }
-        gridCells.add(SpannableGridCellData(
+        courseTableGridCells.add(SpannableGridCellData(
             id: id,
             row: row,
             column: column,
@@ -151,29 +150,43 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
       }
 
       // 遍历每周每天日期
-      calendars.add(Text("${dateIterator.month}月"));
       for (int weekday = 1; weekday <= 7; weekday++) {
         calendars.add(Text("${dateIterator.month}/${dateIterator.day}"));
         dateIterator = dateIterator.add(const Duration(days: 1));
       }
 
-      tableList.add(
-        Container(
+      List<SpannableGridCellData> topListTile = List.generate(7, (index) =>
+          SpannableGridCellData(id: index+1, column: index+1, row: 1,
+            child: Container(
+              alignment: Alignment.centerRight,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  weekList[index],
+                  calendars[index],
+                ],
+              ),
+            ),
+          )
+      );
+
+      tableList.add(Container(
           padding: const EdgeInsets.all(2),
           child: Column(
             children: [
               ListTile(
+                minVerticalPadding: 0,
                 tileColor: colorScheme.primary.withOpacity(0.25),
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(8)),
                 ),
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: calendars,
-                ),
-                subtitle: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: weekList,
+                title: SpannableGrid(
+                  editingStrategy: SpannableGridEditingStrategy.disabled(),
+                  style: const SpannableGridStyle(spacing: 0),
+                  gridSize: SpannableGridSize.parentHeight,
+                  rows: 1,
+                  columns: 7,
+                  cells: topListTile,
                 ),
               ),
               Expanded(child: ListView(
@@ -191,7 +204,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
                             backgroundColor: colorScheme.primary.withOpacity(0.1),
                             spacing: 0,
                           ),
-                          cells: gridCells,
+                          cells: courseTableGridCells,
                         ),
                       ))
                     ],
@@ -211,7 +224,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
     _isAnimating = true;
     pageController.animateToPage(
         targetPage,
-        // duration = sqrt(abs(differences between oldPage & targetPage)) * 100ms
+        // duration = sqrt(abs(differences between oldPage & targetPage)) * 300ms
         duration: Duration(milliseconds: sqrt((targetPage - oldPage).abs()).toInt() * 300),
         curve: Curves.easeInOut).then((value) {_isAnimating = false;});
   }
