@@ -18,9 +18,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:flutter_course_table_demo/internal/utils/course_table_json_handlers.dart';
-import 'package:flutter_course_table_demo/internal/types/course_table.dart';
-import 'package:flutter_course_table_demo/internal/types/semester_info.dart';
+import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
+import 'package:flutter_course_table/internal/types/course_table.dart';
+import 'package:flutter_course_table/internal/types/semester_info.dart';
 import 'package:http/http.dart' as http;
 
 Future<bool> authorizer(String? username, String? password) async {

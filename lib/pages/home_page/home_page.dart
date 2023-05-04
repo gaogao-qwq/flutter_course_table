@@ -15,13 +15,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
-import 'package:flutter_course_table_demo/constants.dart';
-import 'package:flutter_course_table_demo/internal/types/course_table.dart';
-import 'package:flutter_course_table_demo/internal/utils/course_table_json_handlers.dart';
-import 'package:flutter_course_table_demo/internal/utils/database_utils.dart';
-import 'package:flutter_course_table_demo/pages/home_page/course_table_widget_builder.dart';
-import 'package:flutter_course_table_demo/pages/import_page/import_page.dart';
-import 'package:flutter_course_table_demo/pages/settings_page/settings_page.dart';
+import 'package:flutter_course_table/constants.dart';
+import 'package:flutter_course_table/internal/types/course_table.dart';
+import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
+import 'package:flutter_course_table/internal/utils/database_utils.dart';
+import 'package:flutter_course_table/pages/home_page/course_table_widget_builder.dart';
+import 'package:flutter_course_table/pages/import_page/import_page.dart';
+import 'package:flutter_course_table/pages/settings_page/settings_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqlite3/common.dart' as sqlite3;

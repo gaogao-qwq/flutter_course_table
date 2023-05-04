@@ -17,8 +17,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_course_table_demo/internal/types/course_table.dart';
-import 'package:flutter_course_table_demo/internal/types/course_info.dart';
+import 'package:flutter_course_table/internal/types/course_table.dart';
+import 'package:flutter_course_table/internal/types/course_info.dart';
 import 'package:spannable_grid/spannable_grid.dart';
 
 class CourseTableWidget extends StatefulWidget {

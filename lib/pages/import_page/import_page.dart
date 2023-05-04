@@ -16,16 +16,16 @@
 
 import 'package:flutter/material.dart';
 
-import 'package:flutter_course_table_demo/internal/types/course_table.dart';
-import 'package:flutter_course_table_demo/internal/types/semester_info.dart';
-import 'package:flutter_course_table_demo/internal/handlers/response_handlers.dart';
-import 'package:flutter_course_table_demo/internal/utils/course_table_json_handlers.dart';
-import 'package:flutter_course_table_demo/internal/utils/database_utils.dart';
-import 'package:flutter_course_table_demo/pages/import_page/name_table_dialog.dart';
-import 'package:flutter_course_table_demo/pages/import_page/select_first_week_date_dialog.dart';
-import 'package:flutter_course_table_demo/pages/import_page/select_semester_dialog.dart';
-import 'package:flutter_course_table_demo/pages/import_page/loading_overlay.dart';
-import 'package:flutter_course_table_demo/utils/show_info_dialog.dart';
+import 'package:flutter_course_table/internal/types/course_table.dart';
+import 'package:flutter_course_table/internal/types/semester_info.dart';
+import 'package:flutter_course_table/internal/handlers/response_handlers.dart';
+import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
+import 'package:flutter_course_table/internal/utils/database_utils.dart';
+import 'package:flutter_course_table/pages/import_page/name_table_dialog.dart';
+import 'package:flutter_course_table/pages/import_page/select_first_week_date_dialog.dart';
+import 'package:flutter_course_table/pages/import_page/select_semester_dialog.dart';
+import 'package:flutter_course_table/pages/import_page/loading_overlay.dart';
+import 'package:flutter_course_table/utils/show_info_dialog.dart';
 
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:shared_preferences/shared_preferences.dart';
