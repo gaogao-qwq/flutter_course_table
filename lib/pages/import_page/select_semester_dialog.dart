@@ -45,7 +45,7 @@ class _SelectSemesterDialogState extends State<SelectSemesterDialog> {
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
-      title: const Text("Choose semester"),
+      title: const Text("选择学期"),
       children: <Widget>[
         Column(
           children: <Widget>[
