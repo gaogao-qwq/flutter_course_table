@@ -390,9 +390,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
   List<DropdownMenuEntry<String>> getStoredCourseTableEntries() {
     List<DropdownMenuEntry<String>> items = [];
     for (var element in names) {
-      if (element != 'currCourseTableName' && element != 'useLightMode') {
-        items.add(DropdownMenuEntry(value: element, label: element));
-      }
+      items.add(DropdownMenuEntry(value: element, label: element));
     }
     return items;
   }
