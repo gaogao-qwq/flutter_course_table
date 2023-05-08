@@ -24,7 +24,6 @@ import 'package:flutter_course_table/internal/utils/database_utils.dart';
 import 'package:flutter_course_table/pages/home_page/home_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 
