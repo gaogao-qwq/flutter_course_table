@@ -17,10 +17,10 @@
 import 'package:flutter/material.dart';
 
 const double narrowScreenWidthThreshold = 450;
-
 const double largeWidthBreakpoint = 800;
-
 const double transitionLength = 500;
+const int courseInfoLength = 10;
+const int largeCourseInfoLength = 20;
 
 const List<NavigationDestination> appBarDestinations = [
   NavigationDestination(

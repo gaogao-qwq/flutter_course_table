@@ -17,6 +17,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table/constants.dart';
 import 'package:flutter_course_table/internal/types/course_table.dart';
 import 'package:flutter_course_table/internal/types/course_info.dart';
 import 'package:spannable_grid/spannable_grid.dart';
@@ -90,6 +91,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
   List<Widget> _buildTableList() {
     final isBright = Theme.of(context).brightness == Brightness.light;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final isLargeLayout = MediaQuery.of(context).size.width > largeWidthBreakpoint;
 
     int weekNums = widget.courseTable.week ?? 0;
     int row = widget.courseTable.row ?? 0;
@@ -124,28 +126,90 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
       // 遍历每周课时列表
       for (int j = 0; j < courseTableList[i].length; j++) {
         String id = "id";
-        String text = "";
+        String rawCourseInfo = "";
+        String courseInfo = "";
+        String location = "";
+        String courseId = courseTableList[i][j][0].courseId;
+        int sectionBegin = courseTableList[i][j][0].sectionBegin;
         int row = courseTableList[i][j][0].sectionBegin;
         int column = courseTableList[i][j][0].dateNum;
         int rowSpan = courseTableList[i][j][0].sectionLength;
+
         // 因为会出现课程冲突，所以采用了三维数组，最内层遍历同一课时内的课程
         for (int k = 0; k < courseTableList[i][j].length; k++) {
           id += "_${i}_${courseTableList[i][j][k].dateNum}_${courseTableList[i][j][k].sectionBegin}";
-          text += "${courseTableList[i][j][k].courseName}, ${courseTableList[i][j][k].locationName}";
+          rawCourseInfo += courseTableList[i][j][k].courseName;
+          location += courseTableList[i][j][k].locationName;
         }
+
+        if (isLargeLayout) {
+          if (rawCourseInfo.length > largeCourseInfoLength) {
+            courseInfo = "${rawCourseInfo.substring(0, largeCourseInfoLength)}...";
+          } else {
+            courseInfo = rawCourseInfo.substring(0, rawCourseInfo.length);
+          }
+        } else {
+          if (rawCourseInfo.length > courseInfoLength) {
+            courseInfo = "${rawCourseInfo.substring(0, courseInfoLength)}...";
+          } else {
+            courseInfo = rawCourseInfo.substring(0, rawCourseInfo.length);
+          }
+        }
+
         courseTableGridCells.add(SpannableGridCellData(
-            id: id,
-            row: row,
-            column: column,
-            rowSpan: rowSpan,
+          id: id,
+          row: row,
+          column: column,
+          rowSpan: rowSpan,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(context, DialogRoute(context: context, builder:
+                  (context) => SimpleDialog(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Table(
+                          children: [
+                            TableRow(children: [
+                              const Text("课程编号：", textAlign: TextAlign.right),
+                              Text(courseId)
+                            ]),
+                            TableRow(children: [
+                              const Text("课程名称：", textAlign: TextAlign.right),
+                              Text(rawCourseInfo)
+                            ]),
+                            TableRow(children: [
+                              const Text("上课教室：", textAlign: TextAlign.right),
+                              Text(location)
+                            ]),
+                            TableRow(children: [
+                              const Text("课程节数：", textAlign: TextAlign.right),
+                              Text("$sectionBegin")
+                            ]),
+                          ],
+                        ),
+                      )
+                    ],
+                  )
+              ));
+            },
             child: Card(
-                color: isBright ? colorScheme.primary.withOpacity(0.5) : colorScheme.primary.withOpacity(0.35),
-                child: Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.all(2),
-                    child: Text(text, style: const TextStyle(fontSize: 10)),
+              margin: const EdgeInsets.all(2),
+              color: isBright ? colorScheme.primary.withOpacity(0.5) : colorScheme.primary.withOpacity(0.35),
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Flexible(child: Text(courseInfo, style: const TextStyle(fontSize: 10))),
+                    const Divider(thickness: 2),
+                    Flexible(child: Text(location, style: const TextStyle(fontSize: 10))),
+                  ],
                 ),
+              ),
             ),
+          ),
         ));
       }
 
