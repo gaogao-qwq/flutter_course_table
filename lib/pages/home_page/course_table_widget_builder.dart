@@ -195,7 +195,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
             },
             child: Card(
               margin: const EdgeInsets.all(2),
-              color: isBright ? colorScheme.primary.withOpacity(0.5) : colorScheme.primary.withOpacity(0.35),
+              color: isBright ? colorScheme.background.withOpacity(0.8) : colorScheme.primary.withOpacity(0.35),
               child: Container(
                 padding: const EdgeInsets.all(2),
                 child: Column(
