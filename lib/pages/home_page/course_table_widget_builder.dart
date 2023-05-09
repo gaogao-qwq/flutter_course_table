@@ -184,7 +184,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
                             ]),
                             TableRow(children: [
                               const Text("课程节数：", textAlign: TextAlign.right),
-                              Text("$sectionBegin")
+                              Text("$sectionBegin-${sectionBegin+rowSpan-1}")
                             ]),
                           ],
                         ),
