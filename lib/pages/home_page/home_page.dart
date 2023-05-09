@@ -163,6 +163,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
       currCourseTableName = courseTableName;
       courseTable = jsonToCourseTable(jsonString);
       tableEntries = getStoredCourseTableEntries();
+      weekEntries = getStoredCourseTableWeekEntries();
       currPage = getCurrCourseTableInitialPage();
     });
     widget.prefs.setString("currCourseTableName", courseTableName);
