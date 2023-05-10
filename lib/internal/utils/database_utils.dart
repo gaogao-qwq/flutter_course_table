@@ -40,8 +40,7 @@ Future<List<String>> getCourseTableNames(Database db) async {
   final res = await db.query('course_tables_table',
       columns: ['name'],
   );
-  final l = List.generate(res.length, (index) => res[index]['name'].toString());
-  return l;
+  return List.generate(res.length, (index) => res[index]['name'].toString());
 }
 
 Future<void> insertCourseTable(Database db, String name, String json) async {
@@ -55,11 +54,11 @@ Future<void> insertCourseTable(Database db, String name, String json) async {
 }
 
 Future<void> deleteCourseTable(Database db, String name) async {
-  int code = await db.delete('course_tables_table',
+  int cnt = await db.delete('course_tables_table',
       where: 'name = ?',
       whereArgs: [name],
   );
-  if (code != 1) {
+  if (cnt != 1) {
     throw SqlError.SQLITE_NOTFOUND;
   }
 }
