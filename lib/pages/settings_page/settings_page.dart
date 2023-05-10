@@ -25,6 +25,7 @@ import 'package:sqflite/sqflite.dart';
 
 class SettingsPage extends StatefulWidget {
   final String currCourseTableName;
+  final void Function(bool useLightMode) handleBrightnessChange;
   final Future<void> Function(String courseTableName) handleChangeCurrCourseTable;
   final Future<void> Function(String courseTableName) handleDeleteCurrCourseTable;
   final SharedPreferences prefs;
@@ -33,6 +34,7 @@ class SettingsPage extends StatefulWidget {
   const SettingsPage({
     super.key,
     required this.currCourseTableName,
+    required this.handleBrightnessChange,
     required this.handleChangeCurrCourseTable,
     required this.handleDeleteCurrCourseTable,
     required this.prefs,
@@ -45,7 +47,6 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  double? width;
 
   @override
   void initState() {
@@ -59,21 +60,26 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
     super.dispose();
   }
 
-  @override
-  void didUpdateWidget(covariant SettingsPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    setState(() {
-      width = MediaQuery.of(context).size.width;
-    });
-  }
-
   // TODO: Add API selector support.
   @override
   Widget build(BuildContext context) {
+    final isBright = Theme.of(context).brightness == Brightness.light;
+
     return Expanded(
       child: Card(
         child: ListView(
           children: [
+            ListTile(
+              leading: isBright
+                  ? const Icon(Icons.light_mode_outlined)
+                  : const Icon(Icons.dark_mode_outlined),
+              title: const Text("更改显示模式"),
+              trailing: Switch(
+                  value: isBright,
+                  onChanged: (value) {
+                    widget.handleBrightnessChange(value);
+                  }),
+            ),
             ListTile(
               leading: const Icon(Icons.table_chart),
               title: const Text("切换当前课表"),

@@ -252,6 +252,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
       case ScreenSelected.settings:
         return SettingsPage(
           currCourseTableName: currCourseTableName,
+          handleBrightnessChange: widget.handleBrightnessChange,
           handleChangeCurrCourseTable: handleCurrCourseTableChange,
           handleDeleteCurrCourseTable: handleCourseTableDeleted,
           prefs: widget.prefs,
@@ -373,7 +374,10 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
             const Divider(),
             Row(
               children: [
-                const Text('Brightness'),
+                const Text('更改显示模式'),
+                widget.useLightMode
+                    ? const Icon(Icons.light_mode_outlined)
+                    : const Icon(Icons.dark_mode_outlined),
                 Expanded(child: Container()),
                 Switch(
                     value: widget.useLightMode,
@@ -701,8 +705,8 @@ class _BrightnessButton extends StatelessWidget {
       message: '更改显示模式',
       child: IconButton(
         icon: isBright
-            ? const Icon(Icons.dark_mode_outlined)
-            : const Icon(Icons.light_mode_outlined),
+            ? const Icon(Icons.light_mode_outlined)
+            : const Icon(Icons.dark_mode_outlined),
         onPressed: () => handleBrightnessChange(!isBright),
       ),
     );
