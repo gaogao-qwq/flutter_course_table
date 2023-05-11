@@ -19,7 +19,7 @@ import 'package:flutter_course_table/constants.dart';
 import 'package:flutter_course_table/internal/utils/database_utils.dart';
 import 'package:flutter_course_table/pages/settings_page/change_current_course_table_dialog.dart';
 import 'package:flutter_course_table/pages/settings_page/delete_stored_course_table_dialog.dart';
-import 'package:flutter_course_table/pages/settings_page/export%20_course_table_to_xlsx_dialog.dart';
+import 'package:flutter_course_table/pages/settings_page/export_course_table_to_xlsx_dialog.dart';
 import 'package:flutter_course_table/utils/show_info_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
