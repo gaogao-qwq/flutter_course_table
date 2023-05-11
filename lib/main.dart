@@ -38,7 +38,7 @@ Future main() async {
 
   var databaseFactory = databaseFactoryFfi;
   var databasePath = await getApplicationDocumentsDirectory();
-  var path = join(databasePath.path, "flutter_course_table","course_tables_database.db");
+  var path = join(databasePath.path, "flutter_course_table", "course_tables_database.db");
   OpenDatabaseOptions();
   final db = await databaseFactory.openDatabase(path, options: OpenDatabaseOptions(
     version: 1,
