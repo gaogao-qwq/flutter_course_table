@@ -62,6 +62,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
   }
 
   // TODO: Add API selector support.
+  // TODO: Add CourseTable management function.
   @override
   Widget build(BuildContext context) {
     final isBright = Theme.of(context).brightness == Brightness.light;
