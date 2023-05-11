@@ -19,6 +19,7 @@ import 'package:flutter_course_table/constants.dart';
 import 'package:flutter_course_table/internal/utils/database_utils.dart';
 import 'package:flutter_course_table/pages/settings_page/change_current_course_table_dialog.dart';
 import 'package:flutter_course_table/pages/settings_page/delete_stored_course_table_dialog.dart';
+import 'package:flutter_course_table/pages/settings_page/export%20_course_table_to_xlsx_dialog.dart';
 import 'package:flutter_course_table/utils/show_info_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
@@ -71,14 +72,37 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
           children: [
             ListTile(
               leading: isBright
-                  ? const Icon(Icons.light_mode_outlined)
-                  : const Icon(Icons.dark_mode_outlined),
+                  ? const Icon(Icons.light_mode)
+                  : const Icon(Icons.dark_mode),
               title: const Text("更改显示模式"),
               trailing: Switch(
-                  value: isBright,
-                  onChanged: (value) {
-                    widget.handleBrightnessChange(value);
-                  }),
+                value: isBright,
+                onChanged: (value) {
+                  widget.handleBrightnessChange(value);
+                }
+              ),
+              onTap: () {
+                widget.handleBrightnessChange(!isBright);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.save),
+              title: const Text("导出课表"),
+              onTap: () async {
+                final names = await getCourseTableNames(widget.database);
+                if (names.isEmpty) {
+                  if (!mounted) return;
+                  showInfoDialog(context, "Oops", "没有找到导出的课表");
+                  return;
+                }
+                if (!mounted) return;
+                Navigator.push(context, DialogRoute(context: context, builder:
+                  (context) => ExportCourseTableToXlsxDialog(
+                    database: widget.database,
+                    names: names,
+                    currCourseTableName: widget.currCourseTableName,
+                )));
+              },
             ),
             ListTile(
               leading: const Icon(Icons.table_chart),
@@ -87,7 +111,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                 final names = await getCourseTableNames(widget.database);
                 if (names.isEmpty) {
                   if (!mounted) return;
-                  showInfoDialog(context, "Oops", "没有找到导入的课程表");
+                  showInfoDialog(context, "Oops", "没有找到导入的课表");
                   return;
                 }
                 if (!mounted) return;
@@ -101,7 +125,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
             ),
             ListTile(
               leading: const Icon(Icons.delete),
-              title: const Text("删除课程表"),
+              title: const Text("删除课表"),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
               ),
@@ -109,7 +133,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                 final names = await getCourseTableNames(widget.database);
                 if (names.isEmpty) {
                   if (!mounted) return;
-                  showInfoDialog(context, "Oops", "没有找到导入的课程表");
+                  showInfoDialog(context, "Oops", "没有找到导入的课表");
                   return;
                 }
                 if (!mounted) return;
