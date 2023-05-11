@@ -79,7 +79,7 @@ class _CourseTableAppState extends State<CourseTableApp> {
   bool get useLightMode {
     switch (themeMode) {
       case ThemeMode.system:
-        return SchedulerBinding.instance.window.platformBrightness == Brightness.light;
+        return SchedulerBinding.instance.platformDispatcher.platformBrightness == Brightness.light;
       case ThemeMode.light:
         return true;
       case ThemeMode.dark:
