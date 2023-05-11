@@ -65,14 +65,16 @@ class _ExportCourseTableToXlsxDialogState extends State<ExportCourseTableToXlsxD
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                DropdownMenu(
-                  label: const Text("导出课表"),
-                  leadingIcon: const Icon(Icons.delete),
-                  initialSelection: widget.currCourseTableName,
-                  dropdownMenuEntries: entries,
-                  onSelected: (value) {
-                    selectedCourseTableName = value ?? "";
-                  },
+                FittedBox(
+                  child: DropdownMenu(
+                    label: const Text("导出课表"),
+                    leadingIcon: const Icon(Icons.delete),
+                    initialSelection: widget.currCourseTableName,
+                    dropdownMenuEntries: entries,
+                    onSelected: (value) {
+                      selectedCourseTableName = value ?? "";
+                    },
+                  ),
                 ),
                 const Divider(),
                 Row(

@@ -53,15 +53,17 @@ class _ChangeCurrentCourseTableState extends State<ChangeCurrentCourseTable> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              DropdownMenu(
-                label: const Text("切换课表"),
-                leadingIcon: const Icon(Icons.table_chart),
-                initialSelection: widget.currCourseTableName,
-                dropdownMenuEntries: entries,
-                onSelected: (value) {
-                  if (value == null || value.isEmpty) return;
-                  widget.handleChangeCurrCourseTable(value);
-                },
+              FittedBox(
+                child: DropdownMenu(
+                  label: const Text("切换课表"),
+                  leadingIcon: const Icon(Icons.table_chart),
+                  initialSelection: widget.currCourseTableName,
+                  dropdownMenuEntries: entries,
+                  onSelected: (value) {
+                    if (value == null || value.isEmpty) return;
+                    widget.handleChangeCurrCourseTable(value);
+                  },
+                ),
               ),
               const Divider(),
               Row(
