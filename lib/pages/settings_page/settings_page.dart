@@ -127,9 +127,6 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
             ListTile(
               leading: const Icon(Icons.delete),
               title: const Text("删除课表"),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-              ),
               onTap: () async {
                 final names = await getCourseTableNames(widget.database);
                 if (names.isEmpty) {
