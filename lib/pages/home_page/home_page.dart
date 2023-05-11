@@ -374,10 +374,10 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
             const Divider(),
             Row(
               children: [
-                const Text('更改显示模式'),
                 widget.useLightMode
                     ? const Icon(Icons.light_mode_outlined)
                     : const Icon(Icons.dark_mode_outlined),
+                const Text('更改显示模式'),
                 Expanded(child: Container()),
                 Switch(
                     value: widget.useLightMode,
