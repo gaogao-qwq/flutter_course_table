@@ -16,15 +16,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/constants.dart';
+import 'package:flutter_course_table/internal/database/course_table_repository.dart';
 import 'package:flutter_course_table/internal/types/course_table.dart';
 import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
-import 'package:flutter_course_table/internal/utils/database_utils.dart';
 import 'package:flutter_course_table/pages/home_page/course_table_widget_builder.dart';
 import 'package:flutter_course_table/pages/import_page/import_page.dart';
 import 'package:flutter_course_table/pages/settings_page/settings_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:sqlite3/common.dart' as sqlite3;
 
 class CourseTableHomePage extends StatefulWidget {
   final CourseTable? initCourseTable;
@@ -32,23 +30,23 @@ class CourseTableHomePage extends StatefulWidget {
   final bool useLightMode;
   final void Function(bool useLightMode) handleBrightnessChange;
   final SharedPreferences prefs;
-  final Database database;
+  final CourseTableRepository courseTableRepository;
 
-  const CourseTableHomePage({
-    super.key,
-    required this.initCourseTable,
-    required this.names,
-    required this.useLightMode,
-    required this.handleBrightnessChange,
-    required this.prefs,
-    required this.database,
-  });
+  const CourseTableHomePage(
+      {super.key,
+      required this.initCourseTable,
+      required this.names,
+      required this.useLightMode,
+      required this.handleBrightnessChange,
+      required this.prefs,
+      required this.courseTableRepository});
 
   @override
   State<CourseTableHomePage> createState() => _CourseTableHomePageState();
 }
 
-class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTickerProviderStateMixin {
+class _CourseTableHomePageState extends State<CourseTableHomePage>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   String currCourseTableName = "";
   int currPage = 0;
@@ -75,7 +73,6 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     weekEntries = getStoredCourseTableWeekEntries();
     controller = AnimationController(
       duration: Duration(milliseconds: transitionLength.toInt() * 2),
-      value: 0,
       vsync: this,
     );
     railAnimation = CurvedAnimation(
@@ -122,6 +119,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
         return NavigationTransition(
           scaffoldKey: scaffoldKey,
           animationController: controller,
+          gestureDetector: GestureDetector(),
           railAnimation: railAnimation,
           appBar: createAppBar(),
           body: createScreenFor(ScreenSelected.values[screenIndex]),
@@ -131,15 +129,13 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
             selectedIndex: screenIndex,
             onDestinationSelected: (index) {
               setState(() {
-                screenIndex = index;
-                handleScreenChanged(screenIndex);
+                handleScreenChanged(index);
               });
             },
             trailing: Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: _expandedTrailingActions()
-              ),
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: _expandedTrailingActions()),
             ),
           ),
           navigationBar: NavigationBars(
@@ -157,8 +153,9 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
   }
 
   Future<void> handleCurrCourseTableChange(String courseTableName) async {
-    names = await getCourseTableNames(widget.database);
-    final jsonString = await getCourseTableJsonByName(widget.database, courseTableName);
+    names = await widget.courseTableRepository.getCourseTableNames();
+    final jsonString = await widget.courseTableRepository
+        .getCourseTableJsonByName(courseTableName);
     setState(() {
       currCourseTableName = courseTableName;
       courseTable = jsonToCourseTable(jsonString);
@@ -169,15 +166,10 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     widget.prefs.setString("currCourseTableName", courseTableName);
   }
 
-  Future<void> handleCourseTableDeleted(String courseTableName) async {
-    int cnt = await widget.database.delete('course_tables_table',
-        where: 'name = ?', whereArgs: [courseTableName]);
-    if (cnt < 1) {
-      throw sqlite3.SqliteException(sqlite3.SqlError.SQLITE_NOTFOUND,
-          'Nothing found by giving name');
-    }
+  Future<void> handleCourseTableDelete(String courseTableName) async {
+    await widget.courseTableRepository.deleteCourseTable(courseTableName);
 
-    names = await getCourseTableNames(widget.database);
+    names = await widget.courseTableRepository.getCourseTableNames();
     setState(() {
       tableEntries = getStoredCourseTableEntries();
     });
@@ -219,7 +211,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
       case ScreenSelected.courseTable:
         return courseTable == null || currCourseTableName.isEmpty
             ? Expanded(
-              child: Column(
+                child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
@@ -234,49 +226,45 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
                     child: const Text("导入"),
                   ),
                 ],
-              )
-            )
+              ))
             : CourseTableWidget(
-              initPage: getCurrCourseTableInitialPage(),
-              currPage: currPage,
-              courseTable: courseTable!,
-              handleCurrPageChanged: handleCurrPageChanged,
-              handleCourseTableDisposed: handleCourseTableDisposed,
-            );
+                initPage: getCurrCourseTableInitialPage(),
+                currPage: currPage,
+                courseTable: courseTable!,
+                handleCurrPageChanged: handleCurrPageChanged,
+                handleCourseTableDisposed: handleCourseTableDisposed,
+              );
       case ScreenSelected.import:
         return ImportTablePage(
-          handleCurrCourseTableChange: handleCurrCourseTableChange,
-          prefs: widget.prefs,
-          database: widget.database,
-        );
+            handleCurrCourseTableChange: handleCurrCourseTableChange,
+            prefs: widget.prefs,
+            courseTableRepository: widget.courseTableRepository);
       case ScreenSelected.settings:
         return SettingsPage(
-          currCourseTableName: currCourseTableName,
-          handleBrightnessChange: widget.handleBrightnessChange,
-          handleChangeCurrCourseTable: handleCurrCourseTableChange,
-          handleDeleteCurrCourseTable: handleCourseTableDeleted,
-          prefs: widget.prefs,
-          database: widget.database,
-        );
+            currCourseTableName: currCourseTableName,
+            handleBrightnessChange: widget.handleBrightnessChange,
+            handleCurrCourseTableChange: handleCurrCourseTableChange,
+            handleCourseTableDelete: handleCourseTableDelete,
+            prefs: widget.prefs,
+            courseTableRepository: widget.courseTableRepository);
       default:
         return Expanded(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                const Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Text("未选择或未导入课表，请先选择或导入课表"),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    handleScreenChanged(ScreenSelected.import.value);
-                  },
-                  child: const Text("导入"),
-                ),
-              ],
-            )
-        );
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            const Padding(
+              padding: EdgeInsets.all(10),
+              child: Text("未选择或未导入课表，请先选择或导入课表"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                handleScreenChanged(ScreenSelected.import.value);
+              },
+              child: const Text("导入"),
+            ),
+          ],
+        ));
     }
   }
 
@@ -284,7 +272,8 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     Widget title;
     switch (screenIndex) {
       case 0:
-        title = names.isNotEmpty ? _appBarTitle()
+        title = names.isNotEmpty
+            ? _appBarTitle()
             : const Text("Flutter Course Table");
         break;
       case 1:
@@ -298,58 +287,56 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     }
 
     return AppBar(
-      title: title,
-      notificationPredicate: (ScrollNotification notification) {
-        return notification.depth == 1;
-      },
-      scrolledUnderElevation: 4.0,
-      actions: (!showLargeSizeLayout)
-          ? [_BrightnessButton(
-                handleBrightnessChange: widget.handleBrightnessChange,
-              ),
-            ]
-          : [Container()],
-    );
+        title: title,
+        notificationPredicate: (ScrollNotification notification) {
+          return notification.depth == 1;
+        },
+        scrolledUnderElevation: 4.0,
+        actions: (showLargeSizeLayout)
+            ? [Container()]
+            : [
+                _BrightnessButton(
+                  handleBrightnessChange: widget.handleBrightnessChange,
+                )
+              ]);
   }
 
   Widget _appBarTitle() => Container(
-      alignment: Alignment.bottomLeft,
-      child: FittedBox(
-        child: Row(
-          children: [
-            DropdownMenu(
-              menuHeight: 400,
-              leadingIcon: const Icon(Icons.table_chart),
-              initialSelection: currCourseTableName,
-              inputDecorationTheme: const InputDecorationTheme(
-                  isCollapsed: true
-              ),
-              dropdownMenuEntries: tableEntries,
-              onSelected: (value) async {
-                if (value == null || value.isEmpty) return;
-                await handleCurrCourseTableChange(value);
-              },
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: DropdownMenu(
+        alignment: Alignment.bottomLeft,
+        child: FittedBox(
+          child: Row(
+            children: [
+              DropdownMenu(
                 menuHeight: 400,
-                leadingIcon: const Icon(Icons.calendar_today),
-                initialSelection: currPage,
-                inputDecorationTheme: const InputDecorationTheme(
-                    isCollapsed: true
-                ),
-                dropdownMenuEntries: weekEntries,
-                onSelected: (value) {
-                  if (value == null) return;
-                  handleCurrPageChanged(value);
+                leadingIcon: const Icon(Icons.table_chart),
+                initialSelection: currCourseTableName,
+                inputDecorationTheme:
+                    const InputDecorationTheme(isCollapsed: true),
+                dropdownMenuEntries: tableEntries,
+                onSelected: (value) async {
+                  if (value == null || value.isEmpty) return;
+                  await handleCurrCourseTableChange(value);
                 },
               ),
-            )
-          ],
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: DropdownMenu(
+                  menuHeight: 400,
+                  leadingIcon: const Icon(Icons.calendar_today),
+                  initialSelection: currPage,
+                  inputDecorationTheme:
+                      const InputDecorationTheme(isCollapsed: true),
+                  dropdownMenuEntries: weekEntries,
+                  onSelected: (value) {
+                    if (value == null) return;
+                    handleCurrPageChanged(value);
+                  },
+                ),
+              )
+            ],
+          ),
         ),
-      ),
-  );
+      );
 
   int getCurrCourseTableInitialPage() {
     if (courseTable == null) return 0;
@@ -363,34 +350,34 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
   }
 
   Widget _expandedTrailingActions() => Container(
-    alignment: Alignment.bottomCenter,
-    constraints: const BoxConstraints.tightFor(width: 250),
-    padding: const EdgeInsets.symmetric(horizontal: 30),
-    child: ListView(
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        alignment: Alignment.bottomCenter,
+        constraints: const BoxConstraints.tightFor(width: 250),
+        padding: const EdgeInsets.symmetric(horizontal: 30),
+        child: ListView(
           children: [
-            const Divider(),
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                widget.useLightMode
-                    ? const Icon(Icons.light_mode_outlined)
-                    : const Icon(Icons.dark_mode_outlined),
-                const Text('更改显示模式'),
-                Expanded(child: Container()),
-                Switch(
-                    value: widget.useLightMode,
-                    onChanged: (value) {
-                      widget.handleBrightnessChange(value);
-                    }),
+                const Divider(),
+                Row(
+                  children: [
+                    widget.useLightMode
+                        ? const Icon(Icons.light_mode_outlined)
+                        : const Icon(Icons.dark_mode_outlined),
+                    const Text('更改显示模式'),
+                    Expanded(child: Container()),
+                    Switch(
+                        value: widget.useLightMode,
+                        onChanged: (value) {
+                          widget.handleBrightnessChange(value);
+                        }),
+                  ],
+                ),
               ],
             ),
           ],
         ),
-      ],
-    ),
-  );
+      );
 
   List<DropdownMenuEntry<String>> getStoredCourseTableEntries() {
     List<DropdownMenuEntry<String>> items = [];
@@ -404,7 +391,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage> with SingleTi
     List<DropdownMenuEntry<int>> items = [];
     if (courseTable == null) return items;
     for (int i = 0; i < (courseTable!.week ?? 0); i++) {
-      items.add(DropdownMenuEntry(value: i, label: "第${i+1}周"));
+      items.add(DropdownMenuEntry(value: i, label: "第${i + 1}周"));
     }
     return items;
   }
@@ -443,7 +430,7 @@ class _NavigationBarsState extends State<NavigationBars> {
 
   @override
   Widget build(BuildContext context) {
-    Widget navigationBar = Focus(
+    return Focus(
       child: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (index) {
@@ -455,24 +442,24 @@ class _NavigationBarsState extends State<NavigationBars> {
         destinations: appBarDestinations,
       ),
     );
-
-    return navigationBar;
   }
 }
 
 class NavigationTransition extends StatefulWidget {
   const NavigationTransition(
       {super.key,
-        required this.scaffoldKey,
-        required this.animationController,
-        required this.railAnimation,
-        required this.navigationRail,
-        required this.navigationBar,
-        required this.appBar,
-        required this.body});
+      required this.scaffoldKey,
+      required this.animationController,
+      required this.gestureDetector,
+      required this.railAnimation,
+      required this.navigationRail,
+      required this.navigationBar,
+      required this.appBar,
+      required this.body});
 
   final GlobalKey<ScaffoldState> scaffoldKey;
   final AnimationController animationController;
+  final GestureDetector gestureDetector;
   final CurvedAnimation railAnimation;
   final Widget navigationRail;
   final Widget navigationBar;
@@ -513,7 +500,7 @@ class _NavigationTransitionState extends State<NavigationTransition> {
       key: widget.scaffoldKey,
       appBar: widget.appBar,
       body: Row(
-        children: <Widget>[
+        children: [
           RailTransition(
             animation: railAnimation,
             backgroundColor: colorScheme.surface,
@@ -534,59 +521,59 @@ class _NavigationTransitionState extends State<NavigationTransition> {
 final List<NavigationRailDestination> navRailDestinations = appBarDestinations
     .map(
       (destination) => NavigationRailDestination(
-    icon: Tooltip(
-      message: destination.label,
-      child: destination.icon,
-    ),
-    selectedIcon: Tooltip(
-      message: destination.label,
-      child: destination.selectedIcon,
-    ),
-    label: Text(destination.label),
-  ),
-)
+        icon: Tooltip(
+          message: destination.label,
+          child: destination.icon,
+        ),
+        selectedIcon: Tooltip(
+          message: destination.label,
+          child: destination.selectedIcon,
+        ),
+        label: Text(destination.label),
+      ),
+    )
     .toList();
 
 class SizeAnimation extends CurvedAnimation {
   SizeAnimation(Animation<double> parent)
       : super(
-    parent: parent,
-    curve: const Interval(
-      0.2,
-      0.8,
-      curve: Curves.easeInOutCubicEmphasized,
-    ),
-    reverseCurve: Interval(
-      0,
-      0.2,
-      curve: Curves.easeInOutCubicEmphasized.flipped,
-    ),
-  );
+          parent: parent,
+          curve: const Interval(
+            0.2,
+            0.8,
+            curve: Curves.easeInOutCubicEmphasized,
+          ),
+          reverseCurve: Interval(
+            0,
+            0.2,
+            curve: Curves.easeInOutCubicEmphasized.flipped,
+          ),
+        );
 }
 
 class OffsetAnimation extends CurvedAnimation {
   OffsetAnimation(Animation<double> parent)
       : super(
-    parent: parent,
-    curve: const Interval(
-      0.4,
-      1.0,
-      curve: Curves.easeInOutCubicEmphasized,
-    ),
-    reverseCurve: Interval(
-      0,
-      0.2,
-      curve: Curves.easeInOutCubicEmphasized.flipped,
-    ),
-  );
+          parent: parent,
+          curve: const Interval(
+            0.4,
+            1.0,
+            curve: Curves.easeInOutCubicEmphasized,
+          ),
+          reverseCurve: Interval(
+            0,
+            0.2,
+            curve: Curves.easeInOutCubicEmphasized.flipped,
+          ),
+        );
 }
 
 class RailTransition extends StatefulWidget {
   const RailTransition(
       {super.key,
-        required this.animation,
-        required this.backgroundColor,
-        required this.child});
+      required this.animation,
+      required this.backgroundColor,
+      required this.child});
 
   final Animation<double> animation;
   final Widget child;
@@ -640,9 +627,9 @@ class _RailTransition extends State<RailTransition> {
 class BarTransition extends StatefulWidget {
   const BarTransition(
       {super.key,
-        required this.animation,
-        required this.backgroundColor,
-        required this.child});
+      required this.animation,
+      required this.backgroundColor,
+      required this.child});
 
   final Animation<double> animation;
   final Color backgroundColor;

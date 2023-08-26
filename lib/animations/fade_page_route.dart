@@ -16,19 +16,15 @@
 
 import 'package:flutter/material.dart';
 
-void showInfoDialog(BuildContext context, String title, String content) {
-  showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(content),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => {Navigator.of(context).pop()},
-              child: const Text("OK"),
-            )
-          ],
-        );
-      });
+class FadePageRoute<T> extends MaterialPageRoute<T> {
+  FadePageRoute({required super.builder});
+
+  @override
+  Widget buildTransitions(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation, Widget child) {
+    return FadeTransition(
+      opacity: animation,
+      child: child,
+    );
+  }
 }

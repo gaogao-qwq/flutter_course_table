@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'dart:convert';
+
 import 'course_info.dart';
 
 class CourseTable {
@@ -34,7 +35,8 @@ class CourseTable {
     required this.data,
   });
 
-  factory CourseTable.fromJson(String jsonString, String? firstWeekDate, String? name) {
+  factory CourseTable.fromJson(
+      String jsonString, String? firstWeekDate, String? name) {
     final jsonMap = jsonDecode(jsonString);
     List<dynamic> jsonData;
     jsonMap['data'] is String
@@ -46,7 +48,7 @@ class CourseTable {
         var tmp = CourseInfo.fromJson(jsonData[i][j]);
         data[i].add(tmp);
       }
-      if (i != jsonData.length-1) data.add(<CourseInfo>[]);
+      if (i != jsonData.length - 1) data.add(<CourseInfo>[]);
     }
     return CourseTable(
       name: name ?? jsonMap['name'],
@@ -59,13 +61,14 @@ class CourseTable {
   }
 
   static Map<String, dynamic> toJson(CourseTable v) => {
-    'name': v.name,
-    'firstWeekDate': v.firstWeekDate,
-    'row': v.row,
-    'col': v.col,
-    'week': v.week,
-    'data': jsonEncode(v.data, toEncodable: (Object? v) => v is CourseInfo
-        ? CourseInfo.toJson(v)
-        : throw UnsupportedError('Cannot convert to JSON: $v'))
-  };
+        'name': v.name,
+        'firstWeekDate': v.firstWeekDate,
+        'row': v.row,
+        'col': v.col,
+        'week': v.week,
+        'data': jsonEncode(v.data,
+            toEncodable: (Object? v) => v is CourseInfo
+                ? CourseInfo.toJson(v)
+                : throw UnsupportedError('Cannot convert to JSON: $v'))
+      };
 }

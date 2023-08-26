@@ -18,31 +18,31 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table/internal/database/course_table_repository.dart';
 import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
 import 'package:flutter_course_table/internal/utils/course_table_xlsx_handlers.dart';
-import 'package:flutter_course_table/internal/utils/database_utils.dart';
 import 'package:flutter_course_table/utils/show_info_dialog.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:sqflite/sqflite.dart';
 
 class ExportCourseTableToXlsxDialog extends StatefulWidget {
-  final Database database;
   final List<String> names;
   final String currCourseTableName;
+  final CourseTableRepository courseTableRepository;
 
-  const ExportCourseTableToXlsxDialog({
-    super.key,
-    required this.database,
-    required this.names,
-    required this.currCourseTableName,
-  });
+  const ExportCourseTableToXlsxDialog(
+      {super.key,
+      required this.names,
+      required this.currCourseTableName,
+      required this.courseTableRepository});
 
   @override
-  State<ExportCourseTableToXlsxDialog> createState() => _ExportCourseTableToXlsxDialogState();
+  State<ExportCourseTableToXlsxDialog> createState() =>
+      _ExportCourseTableToXlsxDialogState();
 }
 
-class _ExportCourseTableToXlsxDialogState extends State<ExportCourseTableToXlsxDialog> {
+class _ExportCourseTableToXlsxDialogState
+    extends State<ExportCourseTableToXlsxDialog> {
   String selectedCourseTableName = "";
   List<DropdownMenuEntry<String>> entries = [];
 
@@ -50,8 +50,10 @@ class _ExportCourseTableToXlsxDialogState extends State<ExportCourseTableToXlsxD
   void initState() {
     super.initState();
     selectedCourseTableName = widget.currCourseTableName;
-    entries = List.generate(widget.names.length, (index) =>
-        DropdownMenuEntry(value: widget.names[index], label: widget.names[index]));
+    entries = List.generate(
+        widget.names.length,
+        (index) => DropdownMenuEntry(
+            value: widget.names[index], label: widget.names[index]));
   }
 
   @override
@@ -82,13 +84,17 @@ class _ExportCourseTableToXlsxDialogState extends State<ExportCourseTableToXlsxD
                     mainAxisSize: MainAxisSize.max,
                     children: [
                       ElevatedButton(
-                        onPressed: () { Navigator.pop(context); },
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
                         child: const Text("返回"),
                       ),
                       ElevatedButton(
                         onPressed: () async {
-                          final courseTable = jsonToCourseTable(
-                              await getCourseTableJsonByName(widget.database, selectedCourseTableName));
+                          final courseTable = jsonToCourseTable(await widget
+                              .courseTableRepository
+                              .getCourseTableJsonByName(
+                                  selectedCourseTableName));
                           if (courseTable == null) return;
 
                           final excel = await courseTableToXlsx(courseTable);
@@ -96,10 +102,13 @@ class _ExportCourseTableToXlsxDialogState extends State<ExportCourseTableToXlsxD
 
                           String? selectedDirectory;
                           try {
-                            selectedDirectory = await FilePicker.platform.getDirectoryPath(
+                            selectedDirectory =
+                                await FilePicker.platform.getDirectoryPath(
                               dialogTitle: "选择导出路径",
                               lockParentWindow: true,
-                              initialDirectory: (await getApplicationDocumentsDirectory()).path,
+                              initialDirectory:
+                                  (await getApplicationDocumentsDirectory())
+                                      .path,
                             );
                           } catch (e) {
                             if (!mounted) return;
@@ -107,7 +116,8 @@ class _ExportCourseTableToXlsxDialogState extends State<ExportCourseTableToXlsxD
                             return;
                           }
 
-                          if (selectedDirectory == null || selectedDirectory.isEmpty) {
+                          if (selectedDirectory == null ||
+                              selectedDirectory.isEmpty) {
                             if (!mounted) return;
                             showInfoDialog(context, "Oops", "文件路径为空");
                             return;
@@ -120,7 +130,8 @@ class _ExportCourseTableToXlsxDialogState extends State<ExportCourseTableToXlsxD
                             return;
                           }
 
-                          File(join(selectedDirectory, "$selectedCourseTableName.xlsx"))
+                          File(join(selectedDirectory,
+                              "$selectedCourseTableName.xlsx"))
                             ..createSync(recursive: true)
                             ..writeAsBytesSync(fileBytes);
 
@@ -137,4 +148,3 @@ class _ExportCourseTableToXlsxDialogState extends State<ExportCourseTableToXlsxD
     );
   }
 }
-

@@ -14,60 +14,57 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import 'dart:io';
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_course_table/internal/database/course_table_repository.dart';
+import 'package:flutter_course_table/internal/database/initialize_database.dart';
 import 'package:flutter_course_table/internal/types/course_table.dart';
 import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
-import 'package:flutter_course_table/internal/utils/database_utils.dart';
 import 'package:flutter_course_table/pages/home_page/home_page.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:path/path.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SharedPreferences prefs = await SharedPreferences.getInstance();
 
-  if (Platform.isWindows || Platform.isLinux) {
-    // Initialize FFI
-    sqfliteFfiInit();
+  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+
+  CourseTableRepository courseTableRepository =
+      CourseTableRepository(db: await initializeDatabase());
+
+  String? currCourseTableName =
+      sharedPreferences.getString('currCourseTableName');
+
+  List<String> courseTableNames =
+      await courseTableRepository.getCourseTableNames();
+
+  CourseTable? initCourseTable;
+  if (currCourseTableName != null) {
+    initCourseTable = jsonToCourseTable(await courseTableRepository
+        .getCourseTableJsonByName(currCourseTableName));
   }
 
-  var databaseFactory = databaseFactoryFfi;
-  var databasePath = await getApplicationDocumentsDirectory();
-  var path = join(databasePath.path, "flutter_course_table", "course_tables_database.db");
-  OpenDatabaseOptions();
-  final db = await databaseFactory.openDatabase(path, options: OpenDatabaseOptions(
-    version: 1,
-    onCreate: (Database database, int version) async {
-        await database.execute("CREATE TABLE course_tables_table (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, json TEXT UNIQUE NOT NULL)");
-    }
+  runApp(CourseTableApp(
+    initCourseTable: initCourseTable,
+    names: courseTableNames,
+    prefs: sharedPreferences,
+    courseTableRepository: courseTableRepository,
   ));
-
-  final List<String> names = await getCourseTableNames(db);
-  final String currCourseTableName = prefs.getString('currCourseTableName') ?? "";
-  final CourseTable? initCourseTable = currCourseTableName.isEmpty
-      ? null
-      : jsonToCourseTable(await getCourseTableJsonByName(db, currCourseTableName));
-  runApp(CourseTableApp(initCourseTable: initCourseTable, names: names, prefs: prefs, database: db));
 }
 
 class CourseTableApp extends StatefulWidget {
   final CourseTable? initCourseTable;
   final List<String> names;
   final SharedPreferences prefs;
-  final Database database;
+  final CourseTableRepository courseTableRepository;
 
-  const CourseTableApp({
-    super.key,
-    required this.initCourseTable,
-    required this.names,
-    required this.prefs,
-    required this.database,
-  });
+  const CourseTableApp(
+      {super.key,
+      required this.initCourseTable,
+      required this.names,
+      required this.prefs,
+      required this.courseTableRepository});
 
   @override
   State<StatefulWidget> createState() => _CourseTableAppState();
@@ -79,7 +76,9 @@ class _CourseTableAppState extends State<CourseTableApp> {
   bool get useLightMode {
     switch (themeMode) {
       case ThemeMode.system:
-        return SchedulerBinding.instance.platformDispatcher.platformBrightness == Brightness.light;
+        return SchedulerBinding
+                .instance.platformDispatcher.platformBrightness ==
+            Brightness.light;
       case ThemeMode.light:
         return true;
       case ThemeMode.dark:
@@ -100,13 +99,15 @@ class _CourseTableAppState extends State<CourseTableApp> {
     if (!widget.prefs.containsKey("useLightMode")) {
       widget.prefs.setBool("useLightMode", useLightMode);
     } else {
-      themeMode = widget.prefs.getBool("useLightMode")! ? ThemeMode.light : ThemeMode.dark;
+      themeMode = widget.prefs.getBool("useLightMode")!
+          ? ThemeMode.light
+          : ThemeMode.dark;
     }
   }
 
   @override
   void dispose() {
-    widget.database.close();
+    widget.courseTableRepository.db.close();
     super.dispose();
   }
 
@@ -131,7 +132,7 @@ class _CourseTableAppState extends State<CourseTableApp> {
         useLightMode: useLightMode,
         handleBrightnessChange: handleBrightnessChange,
         prefs: widget.prefs,
-        database: widget.database,
+        courseTableRepository: widget.courseTableRepository,
       ),
     );
   }
@@ -140,7 +141,7 @@ class _CourseTableAppState extends State<CourseTableApp> {
 class CourseTableAppScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => {
-    PointerDeviceKind.touch,
-    PointerDeviceKind.mouse,
-  };
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+      };
 }

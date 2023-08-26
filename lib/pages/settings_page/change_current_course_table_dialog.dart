@@ -19,17 +19,19 @@ import 'package:flutter/material.dart';
 class ChangeCurrentCourseTable extends StatefulWidget {
   final String currCourseTableName;
   final List<String> names;
-  final Future<void> Function(String courseTableName) handleChangeCurrCourseTable;
+  final Future<void> Function(String courseTableName)
+      handleCurrCourseTableChange;
 
   const ChangeCurrentCourseTable({
     super.key,
     required this.currCourseTableName,
     required this.names,
-    required this.handleChangeCurrCourseTable,
+    required this.handleCurrCourseTableChange,
   });
 
   @override
-  State<ChangeCurrentCourseTable> createState() => _ChangeCurrentCourseTableState();
+  State<ChangeCurrentCourseTable> createState() =>
+      _ChangeCurrentCourseTableState();
 }
 
 class _ChangeCurrentCourseTableState extends State<ChangeCurrentCourseTable> {
@@ -38,8 +40,10 @@ class _ChangeCurrentCourseTableState extends State<ChangeCurrentCourseTable> {
   @override
   void initState() {
     super.initState();
-    entries = List.generate(widget.names.length, (index) =>
-        DropdownMenuEntry(value: widget.names[index], label: widget.names[index]));
+    entries = List.generate(
+        widget.names.length,
+        (index) => DropdownMenuEntry(
+            value: widget.names[index], label: widget.names[index]));
   }
 
   @override
@@ -50,34 +54,35 @@ class _ChangeCurrentCourseTableState extends State<ChangeCurrentCourseTable> {
         Container(
           padding: const EdgeInsets.all(10),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              FittedBox(
-                child: DropdownMenu(
-                  label: const Text("切换课表"),
-                  leadingIcon: const Icon(Icons.table_chart),
-                  initialSelection: widget.currCourseTableName,
-                  dropdownMenuEntries: entries,
-                  onSelected: (value) {
-                    if (value == null || value.isEmpty) return;
-                    widget.handleChangeCurrCourseTable(value);
-                  },
-                ),
-              ),
-              const Divider(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () { Navigator.pop(context); },
-                    child: const Text("Ok"),
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                FittedBox(
+                  child: DropdownMenu(
+                    label: const Text("切换课表"),
+                    leadingIcon: const Icon(Icons.table_chart),
+                    initialSelection: widget.currCourseTableName,
+                    dropdownMenuEntries: entries,
+                    onSelected: (value) {
+                      if (value == null || value.isEmpty) return;
+                      widget.handleCurrCourseTableChange(value);
+                    },
                   ),
-              ])
-          ]),
+                ),
+                const Divider(),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text("Ok"),
+                      ),
+                    ])
+              ]),
         )
       ],
     );
   }
 }
-

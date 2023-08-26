@@ -35,7 +35,8 @@ class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
   @override
   void initState() {
     super.initState();
-    final yearString = widget.selectedYear.substring(0, widget.selectedYear.indexOf('-'));
+    final yearString =
+        widget.selectedYear.substring(0, widget.selectedYear.indexOf('-'));
     currYear = int.parse(yearString);
     currWeek = DateTime(currYear, DateTime.august, 1);
     while (currWeek.weekday != DateTime.monday) {
@@ -56,13 +57,15 @@ class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
             borderRadius: const BorderRadius.all(Radius.circular(8)),
             value: currYear,
             items: getYearItems(),
-            onChanged: (value) { setState(() {
-              currYear = value ?? currYear;
-              currWeek = DateTime(currYear, DateTime.august, 1);
-              while (currWeek.weekday != DateTime.monday) {
-                currWeek = currWeek.add(const Duration(days: 1));
-              }
-            }); },
+            onChanged: (value) {
+              setState(() {
+                currYear = value ?? currYear;
+                currWeek = DateTime(currYear, DateTime.august, 1);
+                while (currWeek.weekday != DateTime.monday) {
+                  currWeek = currWeek.add(const Duration(days: 1));
+                }
+              });
+            },
           ),
         ),
         Container(
@@ -73,29 +76,32 @@ class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
             borderRadius: const BorderRadius.all(Radius.circular(8)),
             value: currWeek,
             items: getWeekItems(currYear),
-            onChanged: (value) { setState(() { currWeek = value ?? currWeek; }); },
+            onChanged: (value) {
+              setState(() {
+                currWeek = value ?? currWeek;
+              });
+            },
           ),
         ),
         Container(
           padding: const EdgeInsets.all(8),
           child: Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text("Back"),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context, currWeek.toIso8601String());
-                },
-                child: const Text("Select"),
-              ),
-            ]
-          ),
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Back"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context, currWeek.toIso8601String());
+                  },
+                  child: const Text("Select"),
+                ),
+              ]),
         ),
       ],
     );
@@ -106,7 +112,7 @@ class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
     for (int i = 2000; i < 2101; i++) {
       items.add(DropdownMenuItem(
         value: i,
-        child: Text("${i.toString()}-${(i+1).toString()}学年"),
+        child: Text("${i.toString()}-${(i + 1).toString()}学年"),
       ));
     }
     return items;
@@ -119,14 +125,16 @@ class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
       DateTime dEnd = d.add(const Duration(days: 6));
       items.add(DropdownMenuItem(
         value: d,
-        child: Text("${d.year}.${d.month}.${d.day}-${dEnd.year}.${dEnd.month}.${dEnd.day}"),
+        child: Text(
+            "${d.year}.${d.month}.${d.day}-${dEnd.year}.${dEnd.month}.${dEnd.day}"),
       ));
     }
     return items;
   }
 
   List<DateTime> getWeekList(int year) {
-    DateTime start = DateTime(year, DateTime.august, 1), end = DateTime(year+1, DateTime.july, 31);
+    DateTime start = DateTime(year, DateTime.august, 1),
+        end = DateTime(year + 1, DateTime.july, 31);
     final days = end.difference(start).inDays;
     List<DateTime> weeks = [];
     for (int i = 0; i < days; i++, start = start.add(const Duration(days: 1))) {

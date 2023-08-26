@@ -15,16 +15,16 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:flutter_course_table/internal/database/course_table_repository.dart';
 
 class NameTableDialog extends StatefulWidget {
   final String initName;
-  final Database database;
+  final CourseTableRepository courseTableRepository;
 
   const NameTableDialog({
     super.key,
     required this.initName,
-    required this.database,
+    required this.courseTableRepository,
   });
 
   @override
@@ -37,17 +37,13 @@ class _NameTableDialogState extends State<NameTableDialog> {
   late bool isContainedName;
 
   Future<void> _load() async {
-    final list = await widget.database.query('course_tables_table',
-        columns: ['name'],
-        where: 'name = ?',
-        whereArgs: [widget.initName]);
-    isContainedName = list.isEmpty ? false : true;
+    isContainedName =
+        await widget.courseTableRepository.containName(name ?? "");
   }
 
   @override
   void initState() {
     name = widget.initName;
-    isContainedName = false;
     _load();
     super.initState();
   }
@@ -67,14 +63,11 @@ class _NameTableDialogState extends State<NameTableDialog> {
                   autofocus: true,
                   initialValue: widget.initName,
                   maxLength: 50,
-                  onChanged: (value) async {
-                    final list = await widget.database.query('course_tables_table',
-                        columns: ['name'],
-                        where: 'name = ?',
-                        whereArgs: [value]);
-                    setState(() {
-                      isContainedName = list.isEmpty ? false : true;
-                      name = value;
+                  onChanged: (text) async {
+                    setState(() async {
+                      isContainedName =
+                          await widget.courseTableRepository.containName(text);
+                      name = text;
                     });
                   },
                   validator: (value) {
@@ -95,11 +88,13 @@ class _NameTableDialogState extends State<NameTableDialog> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: ElevatedButton(
-                          onPressed: () { Navigator.pop(context, null); },
-                          child: const Text("取消"),
-                      )),
+                          padding: const EdgeInsets.all(10),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context, null);
+                            },
+                            child: const Text("取消"),
+                          )),
                       Padding(
                         padding: const EdgeInsets.all(10),
                         child: ElevatedButton(

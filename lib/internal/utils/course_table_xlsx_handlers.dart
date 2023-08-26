@@ -29,19 +29,31 @@ Future<Excel?> courseTableToXlsx(CourseTable courseTable) async {
 
   if (row == null || col == null || weekNums == null) return null;
 
-  List<List<List<CourseInfo>>> courseTableList = List<List<List<CourseInfo>>>
-      .generate(weekNums, (_) => <List<CourseInfo>>[]);
+  List<List<List<CourseInfo>>> courseTableList =
+      List<List<List<CourseInfo>>>.generate(
+          weekNums, (_) => <List<CourseInfo>>[]);
   for (int i = 0; i < data.length; i++) {
     courseTableList[data[i][0].weekNum - 1].add(data[i]);
   }
 
   const weeksPerRow = 2;
-  final columnLength = col*weeksPerRow+weeksPerRow-1;
+  final columnLength = col * weeksPerRow + weeksPerRow - 1;
 
-  int rBegin(int w) { return 3+w~/weeksPerRow*(row+1); }
-  int rEnd(int w) { return rBegin(w)+row; }
-  int cBegin(int w) { return 1+w%weeksPerRow*(col+1); }
-  int cEnd(int w) { return cBegin(w)+col; }
+  int rBegin(int w) {
+    return 3 + w ~/ weeksPerRow * (row + 1);
+  }
+
+  int rEnd(int w) {
+    return rBegin(w) + row;
+  }
+
+  int cBegin(int w) {
+    return 1 + w % weeksPerRow * (col + 1);
+  }
+
+  int cEnd(int w) {
+    return cBegin(w) + col;
+  }
 
   final titleStyle = CellStyle(
     horizontalAlign: HorizontalAlign.Center,
@@ -51,36 +63,35 @@ Future<Excel?> courseTableToXlsx(CourseTable courseTable) async {
     backgroundColorHex: '#54FF9F',
   ); // SeaGreen1
   final infoStyle = CellStyle(
-    horizontalAlign: HorizontalAlign.Center,
-    verticalAlign: VerticalAlign.Center,
-    fontSize: 8,
-    textWrapping: TextWrapping.WrapText,
-    backgroundColorHex: '#00EEEE'
-  ); // Cyan2
+      horizontalAlign: HorizontalAlign.Center,
+      verticalAlign: VerticalAlign.Center,
+      fontSize: 8,
+      textWrapping: TextWrapping.WrapText,
+      backgroundColorHex: '#00EEEE'); // Cyan2
   final conflictStyle = CellStyle(
-    horizontalAlign: HorizontalAlign.Center,
-    verticalAlign: VerticalAlign.Center,
-    fontSize: 8,
-    textWrapping: TextWrapping.WrapText,
-    backgroundColorHex: '#FF3030'
-  ); // Firebrick1
-  final backgroundStyle = CellStyle(
-    backgroundColorHex: '#BEBEBE'
-  ); // Grey
+      horizontalAlign: HorizontalAlign.Center,
+      verticalAlign: VerticalAlign.Center,
+      fontSize: 8,
+      textWrapping: TextWrapping.WrapText,
+      backgroundColorHex: '#FF3030'); // Firebrick1
+  final backgroundStyle = CellStyle(backgroundColorHex: '#BEBEBE'); // Grey
 
   // Title cell
   sheet.merge(
     CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
-    CellIndex.indexByColumnRow(columnIndex: columnLength+1, rowIndex: 1),
+    CellIndex.indexByColumnRow(columnIndex: columnLength + 1, rowIndex: 1),
     customValue: name,
   );
-  sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0)).cellStyle = titleStyle;
+  sheet
+      .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0))
+      .cellStyle = titleStyle;
 
   for (int w = 0; w < weekNums; w++) {
-    for(int r = rBegin(w); r < rEnd(w); r++) {
+    for (int r = rBegin(w); r < rEnd(w); r++) {
       for (int c = cBegin(w); c < cEnd(w); c++) {
         sheet.setColWidth(c, 20);
-        var cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r));
+        var cell =
+            sheet.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r));
         cell.value = "";
         cell.cellStyle = backgroundStyle;
       }
@@ -90,21 +101,24 @@ Future<Excel?> courseTableToXlsx(CourseTable courseTable) async {
   for (int w = 0; w < weekNums; w++) {
     for (int i = 0; i < courseTableList[w].length; i++) {
       Data cell = sheet.cell(CellIndex.indexByColumnRow(
-        columnIndex: cBegin(w)+courseTableList[w][i][0].dateNum-1,
-        rowIndex: rBegin(w)+courseTableList[w][i][0].sectionBegin-1
-      ));
+          columnIndex: cBegin(w) + courseTableList[w][i][0].dateNum - 1,
+          rowIndex: rBegin(w) + courseTableList[w][i][0].sectionBegin - 1));
       sheet.merge(
         CellIndex.indexByColumnRow(
-          columnIndex: cBegin(w)+courseTableList[w][i][0].dateNum-1,
-          rowIndex: rBegin(w)+courseTableList[w][i][0].sectionBegin-1
-        ),
+            columnIndex: cBegin(w) + courseTableList[w][i][0].dateNum - 1,
+            rowIndex: rBegin(w) + courseTableList[w][i][0].sectionBegin - 1),
         CellIndex.indexByColumnRow(
-          columnIndex: cBegin(w)+courseTableList[w][i][0].dateNum-1,
-          rowIndex: rBegin(w)+courseTableList[w][i][0].sectionBegin+courseTableList[w][i][0].sectionLength-2
-        ),
+            columnIndex: cBegin(w) + courseTableList[w][i][0].dateNum - 1,
+            rowIndex: rBegin(w) +
+                courseTableList[w][i][0].sectionBegin +
+                courseTableList[w][i][0].sectionLength -
+                2),
       );
-      List<String> info = List.generate(courseTableList[w][i].length, (index) =>
-          courseTableList[w][i][index].courseName+courseTableList[w][i][index].locationName);
+      List<String> info = List.generate(
+          courseTableList[w][i].length,
+          (index) =>
+              courseTableList[w][i][index].courseName +
+              courseTableList[w][i][index].locationName);
       if (info.length > 1) {
         cell.value = info.join("\n");
         cell.cellStyle = conflictStyle;

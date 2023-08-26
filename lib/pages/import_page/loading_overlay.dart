@@ -19,10 +19,7 @@ import 'package:flutter/material.dart';
 class LoadingOverlay extends StatelessWidget {
   final String loadingText;
 
-  const LoadingOverlay({
-    super.key,
-    required this.loadingText,
-  });
+  const LoadingOverlay({super.key, required this.loadingText});
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +42,7 @@ class LoadingOverlay extends StatelessWidget {
                       margin: const EdgeInsets.only(top: 10),
                       child: Text(loadingText),
                     ),
-                  ]
-              )
-          ),
+                  ])),
         ),
       ],
     );

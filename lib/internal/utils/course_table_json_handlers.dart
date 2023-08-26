@@ -15,9 +15,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'dart:convert';
+
 import 'package:flutter_course_table/internal/types/course_table.dart';
 
-CourseTable? apiJsonToCourseTable(String? jsonString, String firstWeekDate, String name) {
+CourseTable? apiJsonToCourseTable(
+    String? jsonString, String firstWeekDate, String name) {
   if (jsonString == null || jsonString.isEmpty) return null;
   return CourseTable.fromJson(jsonString, firstWeekDate, name);
 }
@@ -28,9 +30,9 @@ CourseTable? jsonToCourseTable(String? jsonString) {
 }
 
 String courseTableToJson(CourseTable courseTable) {
-  String jsonString = jsonEncode(courseTable, toEncodable: (Object? v) => v is CourseTable
-      ? CourseTable.toJson(v)
-      : throw UnsupportedError('Cannot convert to JSON: $v'));
+  String jsonString = jsonEncode(courseTable,
+      toEncodable: (Object? v) => v is CourseTable
+          ? CourseTable.toJson(v)
+          : throw UnsupportedError('Cannot convert to JSON: $v'));
   return jsonString;
 }
-
