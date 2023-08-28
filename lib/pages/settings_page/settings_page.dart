@@ -18,8 +18,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_course_table/animations/fade_page_route.dart';
 import 'package:flutter_course_table/constants.dart';
 import 'package:flutter_course_table/internal/database/course_table_repository.dart';
-import 'package:flutter_course_table/pages/settings_page/change_current_course_table_dialog.dart';
-import 'package:flutter_course_table/pages/settings_page/delete_stored_course_table_dialog.dart';
 import 'package:flutter_course_table/pages/settings_page/export_course_table_to_xlsx_dialog.dart';
 import 'package:flutter_course_table/pages/settings_page/manage_course_table_widget.dart';
 import 'package:flutter_course_table/utils/show_info_dialog.dart';
@@ -64,7 +62,6 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   // TODO: Add API selector support.
-  // TODO: Add CourseTable management function.
   @override
   Widget build(BuildContext context) {
     final isBright = Theme.of(context).brightness == Brightness.light;
@@ -134,55 +131,6 @@ class _SettingsPageState extends State<SettingsPage>
                           currCourseTableName: widget.currCourseTableName,
                           courseTableRepository:
                               widget.courseTableRepository)));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.table_chart),
-            title: const Text("切换当前课表"),
-            onTap: () async {
-              final names =
-                  await widget.courseTableRepository.getCourseTableNames();
-              if (names.isEmpty) {
-                if (!mounted) return;
-                showInfoDialog(context, "Oops", "没有找到导入的课表");
-                return;
-              }
-              if (!mounted) return;
-              Navigator.push(
-                  context,
-                  DialogRoute(
-                      context: context,
-                      builder: (context) => ChangeCurrentCourseTable(
-                            currCourseTableName: widget.currCourseTableName,
-                            names: names,
-                            handleCurrCourseTableChange:
-                                widget.handleCurrCourseTableChange,
-                          )));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.delete),
-            title: const Text("删除课表"),
-            onTap: () async {
-              final names =
-                  await widget.courseTableRepository.getCourseTableNames();
-              if (names.isEmpty) {
-                if (!mounted) return;
-                showInfoDialog(context, "Oops", "没有找到导入的课表");
-                return;
-              }
-              if (!mounted) return;
-              Navigator.push(
-                  context,
-                  DialogRoute(
-                      context: context,
-                      builder: (context) => DeleteStoredCourseTable(
-                            names: names,
-                            currCourseTableName: widget.currCourseTableName,
-                            handleCourseTableDelete:
-                                widget.handleCourseTableDelete,
-                            courseTableRepository: widget.courseTableRepository,
-                          )));
             },
           ),
           const Divider(),
