@@ -24,32 +24,24 @@ import 'package:flutter_course_table/internal/types/semester_info.dart';
 import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
 import 'package:http/http.dart' as http;
 
-Future<bool> authorizer(String? username, String? password) async {
-  http.Response response = await http.get(
-    Uri.parse('http://localhost:56789/login'),
-    headers: {
-      HttpHeaders.authorizationHeader:
-          'Basic ${utf8.fuse(base64).encode('$username:$password')}'
-    },
-  );
-  if (response.statusCode != 200) {
-    return false;
-  }
-  return true;
-}
-
 Future<List<SemesterInfo>?> fetchSemesterList(
     String? username, String? password) async {
   http.Response response = await http.get(
-    Uri.parse('http://localhost:56789/semester-list'),
+    Uri.parse('http://localhost:56789/v1/semester-list'),
     headers: {
       HttpHeaders.authorizationHeader:
           'Basic ${utf8.fuse(base64).encode('$username:$password')}'
     },
   );
 
-  if (response.statusCode != 200) {
-    return null;
+  if (response.statusCode >= 500 && response.statusCode < 600) {
+    throw const HttpException("服务端错误，请联系维护者");
+  }
+  if (response.statusCode == HttpStatus.unauthorized) {
+    throw const HttpException("身份验证失败");
+  }
+  if (response.statusCode != HttpStatus.ok) {
+    throw const HttpException("未知错误发生");
   }
 
   return parseSemesterInfo(response.bodyBytes);
@@ -70,7 +62,7 @@ Future<CourseTable?> fetchCourseTable(String? username, String? password,
       firstWeekDate == null ||
       name == null) return null;
   http.Response response = await http.get(
-    Uri.parse('http://localhost:56789/course-table'),
+    Uri.parse('http://localhost:56789/v1/course-table'),
     headers: {
       HttpHeaders.authorizationHeader:
           'Basic ${utf8.fuse(base64).encode('$username:$password')}',
@@ -78,7 +70,15 @@ Future<CourseTable?> fetchCourseTable(String? username, String? password,
     },
   );
 
-  if (response.statusCode != 200) return null;
+  if (response.statusCode >= 500 && response.statusCode < 600) {
+    throw const HttpException("服务端错误，请联系维护者");
+  }
+  if (response.statusCode == HttpStatus.unauthorized) {
+    throw const HttpException("身份验证失败");
+  }
+  if (response.statusCode != HttpStatus.ok) {
+    throw const HttpException("未知错误发生");
+  }
 
   return await parseCourseInfo(response.bodyBytes, firstWeekDate, name);
 }
