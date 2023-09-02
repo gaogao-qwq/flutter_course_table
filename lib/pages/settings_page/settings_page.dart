@@ -21,7 +21,6 @@ import 'package:flutter_course_table/internal/database/course_table_repository.d
 import 'package:flutter_course_table/pages/settings_page/export_course_table_to_xlsx_dialog.dart';
 import 'package:flutter_course_table/pages/settings_page/manage_course_table_widget.dart';
 import 'package:flutter_course_table/utils/show_info_dialog.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
   final String currCourseTableName;
@@ -29,7 +28,6 @@ class SettingsPage extends StatefulWidget {
   final Future<void> Function(String courseTableName)
       handleCurrCourseTableChange;
   final Future<void> Function(String courseTableName) handleCourseTableDelete;
-  final SharedPreferences prefs;
   final CourseTableRepository courseTableRepository;
 
   const SettingsPage(
@@ -38,7 +36,6 @@ class SettingsPage extends StatefulWidget {
       required this.handleBrightnessChange,
       required this.handleCurrCourseTableChange,
       required this.handleCourseTableDelete,
-      required this.prefs,
       required this.courseTableRepository});
 
   @override

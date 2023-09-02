@@ -237,7 +237,6 @@ class _CourseTableHomePageState extends State<CourseTableHomePage>
       case ScreenSelected.import:
         return ImportTablePage(
             handleCurrCourseTableChange: handleCurrCourseTableChange,
-            prefs: widget.prefs,
             courseTableRepository: widget.courseTableRepository);
       case ScreenSelected.settings:
         return SettingsPage(
@@ -245,7 +244,6 @@ class _CourseTableHomePageState extends State<CourseTableHomePage>
             handleBrightnessChange: widget.handleBrightnessChange,
             handleCurrCourseTableChange: handleCurrCourseTableChange,
             handleCourseTableDelete: handleCourseTableDelete,
-            prefs: widget.prefs,
             courseTableRepository: widget.courseTableRepository);
       default:
         return Expanded(
