@@ -16,11 +16,12 @@
 
 import 'dart:io';
 
+import 'package:flutter_course_table/configure_dependencies.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-Future<Database> initializeDatabase() async {
+Future<void> initializeDatabase() async {
   if (Platform.isWindows || Platform.isLinux) {
     sqfliteFfiInit();
   }
@@ -28,7 +29,7 @@ Future<Database> initializeDatabase() async {
   String databasePath = join(documentsDirectory.path, "flutter_course_table",
       "course_tables_database.db");
 
-  Database database = await databaseFactoryFfi.openDatabase(databasePath,
+  final database = await databaseFactoryFfi.openDatabase(databasePath,
       options: OpenDatabaseOptions(
           version: 1,
           onCreate: (Database database, int version) async {
@@ -38,5 +39,5 @@ Future<Database> initializeDatabase() async {
                 "json TEXT UNIQUE NOT NULL)");
           }));
 
-  return database;
+  getIt.registerSingleton(database, dispose: (db) async => await db.close());
 }

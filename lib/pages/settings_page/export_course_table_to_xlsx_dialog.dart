@@ -18,23 +18,16 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_course_table/internal/database/course_table_repository.dart';
 import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
 import 'package:flutter_course_table/internal/utils/course_table_xlsx_handlers.dart';
+import 'package:flutter_course_table/pages/data.dart';
 import 'package:flutter_course_table/utils/show_info_dialog.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
 class ExportCourseTableToXlsxDialog extends StatefulWidget {
-  final List<String> names;
-  final String currCourseTableName;
-  final CourseTableRepository courseTableRepository;
-
-  const ExportCourseTableToXlsxDialog(
-      {super.key,
-      required this.names,
-      required this.currCourseTableName,
-      required this.courseTableRepository});
+  const ExportCourseTableToXlsxDialog({super.key});
 
   @override
   State<ExportCourseTableToXlsxDialog> createState() =>
@@ -43,21 +36,17 @@ class ExportCourseTableToXlsxDialog extends StatefulWidget {
 
 class _ExportCourseTableToXlsxDialogState
     extends State<ExportCourseTableToXlsxDialog> {
-  String selectedCourseTableName = "";
-  List<DropdownMenuEntry<String>> entries = [];
-
-  @override
-  void initState() {
-    super.initState();
-    selectedCourseTableName = widget.currCourseTableName;
-    entries = List.generate(
-        widget.names.length,
-        (index) => DropdownMenuEntry(
-            value: widget.names[index], label: widget.names[index]));
-  }
-
   @override
   Widget build(BuildContext context) {
+    String selectedCourseTableName = "";
+    final currCourseTableName =
+        context.watch<CourseTableData>().courseTable?.name;
+    final courseTableNames = context.watch<CourseTableData>().courseTableNames;
+    final entries = List.generate(
+        courseTableNames.length,
+        (index) => DropdownMenuEntry(
+            value: courseTableNames[index], label: courseTableNames[index]));
+
     return SimpleDialog(
       title: const Text("导出选中的课表"),
       children: [
@@ -71,7 +60,7 @@ class _ExportCourseTableToXlsxDialogState
                   child: DropdownMenu(
                     label: const Text("导出课表"),
                     leadingIcon: const Icon(Icons.delete),
-                    initialSelection: widget.currCourseTableName,
+                    initialSelection: currCourseTableName,
                     dropdownMenuEntries: entries,
                     onSelected: (value) {
                       selectedCourseTableName = value ?? "";
@@ -91,10 +80,10 @@ class _ExportCourseTableToXlsxDialogState
                       ),
                       ElevatedButton(
                         onPressed: () async {
-                          final courseTable = jsonToCourseTable(await widget
-                              .courseTableRepository
-                              .getCourseTableJsonByName(
-                                  selectedCourseTableName));
+                          final courseTable = jsonToCourseTable(
+                              await courseTableRepository
+                                  .getCourseTableJsonByName(
+                                      selectedCourseTableName));
                           if (courseTable == null) return;
 
                           final excel = await courseTableToXlsx(courseTable);

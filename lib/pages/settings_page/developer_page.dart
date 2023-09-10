@@ -15,30 +15,63 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table/internal/handlers/response_handlers.dart';
+import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
 import 'package:flutter_course_table/pages/data.dart';
 import 'package:provider/provider.dart';
 
-class NameTableDialog extends StatefulWidget {
-  final String initName;
-
-  const NameTableDialog({super.key, required this.initName});
+class DeveloperPage extends StatefulWidget {
+  const DeveloperPage({super.key});
 
   @override
-  State<NameTableDialog> createState() => _NameTableDialogState();
+  State<DeveloperPage> createState() => _DeveloperPageState();
 }
 
-class _NameTableDialogState extends State<NameTableDialog> {
+class _DeveloperPageState extends State<DeveloperPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("开发者选项"),
+      ),
+      body: Card(
+        child: ListView(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.add),
+              title: const Text("导入测试课表"),
+              onTap: () async {
+                showDialog(
+                    context: context,
+                    builder: (context) =>
+                        const ImportTestTable(initName: "Debug"));
+              },
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ImportTestTable extends StatefulWidget {
+  final String initName;
+
+  const ImportTestTable({super.key, required this.initName});
+
+  @override
+  State<ImportTestTable> createState() => _ImportTestTableState();
+}
+
+class _ImportTestTableState extends State<ImportTestTable> {
   final _formKey = GlobalKey<FormState>();
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final courseTableData = context.watch<CourseTableData>();
     String name = widget.initName;
-    bool isNameUsed = false;
+    bool isNameUsed =
+        courseTableData.courseTableNames.contains(name) ? true : false;
 
     return SimpleDialog(
       title: const Text("为课表命名"),
@@ -55,10 +88,7 @@ class _NameTableDialogState extends State<NameTableDialog> {
                   maxLength: 50,
                   onChanged: (text) {
                     name = text;
-                    isNameUsed = context
-                            .read<CourseTableData>()
-                            .courseTableNames
-                            .contains(name)
+                    isNameUsed = courseTableData.courseTableNames.contains(name)
                         ? true
                         : false;
                   },
@@ -83,16 +113,25 @@ class _NameTableDialogState extends State<NameTableDialog> {
                           padding: const EdgeInsets.all(10),
                           child: ElevatedButton(
                             onPressed: () {
-                              Navigator.pop(context, null);
+                              Navigator.pop(context);
                             },
                             child: const Text("取消"),
                           )),
                       Padding(
                         padding: const EdgeInsets.all(10),
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (!_formKey.currentState!.validate()) return;
-                            Navigator.pop(context, name);
+                            DateTime date = DateTime.now();
+                            while (date.day != DateTime.monday) {
+                              date = date.add(const Duration(days: 1));
+                            }
+                            final courseTable = await fetchTestCourseTable(
+                                date.toIso8601String(), name);
+                            final jsonString = courseTableToJson(courseTable!);
+                            if (!mounted) return;
+                            courseTableData.add(name, jsonString);
+                            Navigator.pop(context);
                           },
                           child: const Text("保存"),
                         ),

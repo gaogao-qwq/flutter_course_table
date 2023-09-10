@@ -15,27 +15,25 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table/configure_dependencies.dart';
 import 'package:flutter_course_table/internal/database/course_table_repository.dart';
 import 'package:flutter_course_table/internal/handlers/response_handlers.dart';
 import 'package:flutter_course_table/internal/types/course_table.dart';
 import 'package:flutter_course_table/internal/types/semester_info.dart';
 import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
+import 'package:flutter_course_table/pages/data.dart';
 import 'package:flutter_course_table/pages/import_page/loading_overlay.dart';
 import 'package:flutter_course_table/pages/import_page/name_table_dialog.dart';
 import 'package:flutter_course_table/pages/import_page/select_first_week_date_dialog.dart';
 import 'package:flutter_course_table/pages/import_page/select_semester_dialog.dart';
 import 'package:flutter_course_table/utils/show_info_dialog.dart';
 import 'package:loader_overlay/loader_overlay.dart';
+import 'package:provider/provider.dart';
+
+final courseTableRepository = getIt<CourseTableRepository>();
 
 class ImportFromCrawler extends StatefulWidget {
-  final Future<void> Function(String courseTableName)
-      handleCurrCourseTableChange;
-  final CourseTableRepository courseTableRepository;
-
-  const ImportFromCrawler(
-      {super.key,
-      required this.handleCurrCourseTableChange,
-      required this.courseTableRepository});
+  const ImportFromCrawler({super.key});
 
   @override
   State<ImportFromCrawler> createState() => _ImportFromCrawlerState();
@@ -50,6 +48,7 @@ class _ImportFromCrawlerState extends State<ImportFromCrawler> {
 
   @override
   Widget build(BuildContext context) {
+    final courseTableData = context.watch<CourseTableData>();
     return Scaffold(
       appBar: AppBar(title: const Text("从爬虫服务器导入")),
       body: GlobalLoaderOverlay(
@@ -127,10 +126,10 @@ class _ImportFromCrawlerState extends State<ImportFromCrawler> {
                             // 聚焦至空白 Node
                             FocusScope.of(context).requestFocus(blankNode);
 
-                            // Start importing...
+                            // Start login...
                             context.loaderOverlay.show(
                                 widget: const LoadingOverlay(
-                              loadingText: '登录中...',
+                              loadingText: '获取课程表信息中...',
                             ));
                             setState(() {
                               _isLoaderVisible = context.loaderOverlay.visible;
@@ -240,9 +239,7 @@ class _ImportFromCrawlerState extends State<ImportFromCrawler> {
                                         }
                                       }
                                       return NameTableDialog(
-                                          initName: initName,
-                                          courseTableRepository:
-                                              widget.courseTableRepository);
+                                          initName: initName);
                                     }));
                             if (courseTableName == null ||
                                 courseTableName.isEmpty) {
@@ -262,7 +259,7 @@ class _ImportFromCrawlerState extends State<ImportFromCrawler> {
                             if (!mounted) return;
                             context.loaderOverlay.show(
                                 widget: const LoadingOverlay(
-                              loadingText: '导入中...',
+                              loadingText: '导入中，这可能需要一些时间...',
                             ));
                             setState(() {
                               _isLoaderVisible = context.loaderOverlay.visible;
@@ -312,7 +309,7 @@ class _ImportFromCrawlerState extends State<ImportFromCrawler> {
                             // Start saving...
                             context.loaderOverlay.show(
                                 widget: const LoadingOverlay(
-                              loadingText: '保存中...',
+                              loadingText: '保存中，这可能需要一些时间...',
                             ));
                             setState(() {
                               _isLoaderVisible = context.loaderOverlay.visible;
@@ -336,9 +333,8 @@ class _ImportFromCrawlerState extends State<ImportFromCrawler> {
 
                             // 存入 Database
                             try {
-                              await widget.courseTableRepository
-                                  .insertCourseTable(
-                                      courseTableName, jsonString);
+                              await courseTableData.add(
+                                  courseTableName, jsonString);
                             } catch (e) {
                               if (!mounted) return;
                               showInfoDialog(context, "Oops", "发生了错误：$e");
@@ -361,8 +357,9 @@ class _ImportFromCrawlerState extends State<ImportFromCrawler> {
                             });
                             // End saving...
 
-                            await widget
-                                .handleCurrCourseTableChange(courseTableName);
+                            context
+                                .read<CourseTableData>()
+                                .changeByName(courseTableName);
                             if (!mounted) return;
                             showInfoDialog(context, "喜报", "导入成功");
                           },

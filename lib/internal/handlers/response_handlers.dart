@@ -83,6 +83,14 @@ Future<CourseTable?> fetchCourseTable(String? username, String? password,
   return await parseCourseInfo(response.bodyBytes, firstWeekDate, name);
 }
 
+Future<CourseTable?> fetchTestCourseTable(
+    String firstWeekDate, String name) async {
+  http.Response response = await http.get(
+    Uri.parse('http://localhost:56789/v1/test'),
+  );
+  return await parseCourseInfo(response.bodyBytes, firstWeekDate, name);
+}
+
 Future<CourseTable?> parseCourseInfo(
     Uint8List responseBody, String firstWeekDate, String name) async {
   var responseString = const Utf8Decoder().convert(responseBody);

@@ -17,102 +17,55 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:flutter_course_table/configure_dependencies.dart';
 import 'package:flutter_course_table/internal/database/course_table_repository.dart';
 import 'package:flutter_course_table/internal/database/initialize_database.dart';
-import 'package:flutter_course_table/internal/types/course_table.dart';
-import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
+import 'package:flutter_course_table/internal/prefs/initialize_shared_prefrences.dart';
+import 'package:flutter_course_table/internal/prefs/shared_preferences_repository.dart';
+import 'package:flutter_course_table/pages/data.dart';
 import 'package:flutter_course_table/pages/home_page/home_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+
+final courseTableRepository = getIt<CourseTableRepository>();
+final prefsRepository = getIt<SharedPreferencesRepository>();
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-
-  CourseTableRepository courseTableRepository =
-      CourseTableRepository(db: await initializeDatabase());
-
-  String? currCourseTableName =
-      sharedPreferences.getString('currCourseTableName');
-
-  List<String> courseTableNames =
-      await courseTableRepository.getCourseTableNames();
-
-  CourseTable? initCourseTable;
-  if (currCourseTableName != null) {
-    initCourseTable = jsonToCourseTable(await courseTableRepository
-        .getCourseTableJsonByName(currCourseTableName));
-  }
-
-  runApp(CourseTableApp(
-    initCourseTable: initCourseTable,
-    names: courseTableNames,
-    prefs: sharedPreferences,
-    courseTableRepository: courseTableRepository,
-  ));
+  await initializeDatabase();
+  await initializeSharedPreferences();
+  configureDependencies();
+  final courseTableNames = await courseTableRepository.getCourseTableNames();
+  final currCourseTableName = prefsRepository.getCurrentCourseTableName();
+  final courseTable =
+      await courseTableRepository.getCourseTableByName(currCourseTableName);
+  runApp(MultiProvider(providers: [
+    ChangeNotifierProvider(
+        create: (context) => AppThemeData(prefsRepository.isLightMode())),
+    ChangeNotifierProvider(
+      create: (BuildContext context) =>
+          CourseTableData(courseTableNames, courseTable),
+    ),
+  ], child: const CourseTableApp()));
 }
 
 class CourseTableApp extends StatefulWidget {
-  final CourseTable? initCourseTable;
-  final List<String> names;
-  final SharedPreferences prefs;
-  final CourseTableRepository courseTableRepository;
-
-  const CourseTableApp(
-      {super.key,
-      required this.initCourseTable,
-      required this.names,
-      required this.prefs,
-      required this.courseTableRepository});
+  const CourseTableApp({super.key});
 
   @override
   State<StatefulWidget> createState() => _CourseTableAppState();
 }
 
 class _CourseTableAppState extends State<CourseTableApp> {
-  ThemeMode themeMode = ThemeMode.system;
-
-  bool get useLightMode {
-    switch (themeMode) {
-      case ThemeMode.system:
-        return SchedulerBinding
-                .instance.platformDispatcher.platformBrightness ==
-            Brightness.light;
-      case ThemeMode.light:
-        return true;
-      case ThemeMode.dark:
-        return false;
-    }
-  }
-
-  void handleBrightnessChange(bool useLightMode) {
-    setState(() {
-      themeMode = useLightMode ? ThemeMode.light : ThemeMode.dark;
-    });
-    widget.prefs.setBool("useLightMode", useLightMode);
-  }
-
   @override
   void initState() {
     super.initState();
-    if (!widget.prefs.containsKey("useLightMode")) {
-      widget.prefs.setBool("useLightMode", useLightMode);
-    } else {
-      themeMode = widget.prefs.getBool("useLightMode")!
-          ? ThemeMode.light
-          : ThemeMode.dark;
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.courseTableRepository.db.close();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = context.select((AppThemeData data) => data.isLightMode)
+        ? ThemeMode.light
+        : ThemeMode.dark;
     return MaterialApp(
       scrollBehavior: CourseTableAppScrollBehavior(),
       themeMode: themeMode,
@@ -126,14 +79,7 @@ class _CourseTableAppState extends State<CourseTableApp> {
         useMaterial3: true,
         brightness: Brightness.dark,
       ),
-      home: CourseTableHomePage(
-        initCourseTable: widget.initCourseTable,
-        names: widget.names,
-        useLightMode: useLightMode,
-        handleBrightnessChange: handleBrightnessChange,
-        prefs: widget.prefs,
-        courseTableRepository: widget.courseTableRepository,
-      ),
+      home: const CourseTableHomePage(),
     );
   }
 }

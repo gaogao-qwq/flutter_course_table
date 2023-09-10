@@ -14,32 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:flutter_course_table/configure_dependencies.dart';
+import 'package:flutter_course_table/internal/types/course_table.dart';
+import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
+import 'package:injectable/injectable.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqlite3/common.dart';
 
+final Database database = getIt.get<Database>();
+
+@singleton
 class CourseTableRepository {
-  final Database db;
-
-  const CourseTableRepository({
-    required this.db,
-  });
-
   Future<int> count() async {
-    if (!db.isOpen) {
+    if (!database.isOpen) {
       throw SqliteException(
           SqlError.SQLITE_NOTFOUND, 'Sqlite database not found or cannot open');
     }
-    return Sqflite.firstIntValue(
-            await db.rawQuery('SELECT COUNT(*) FROM course_tables_table')) ??
+    return Sqflite.firstIntValue(await database
+            .rawQuery('SELECT COUNT(*) FROM course_tables_table')) ??
         0;
   }
 
   Future<bool> containName(String name) async {
-    if (!db.isOpen) {
+    if (!database.isOpen) {
       throw SqliteException(
           SqlError.SQLITE_NOTFOUND, "Sqlite database not found or cannot open");
     }
-    return Sqflite.firstIntValue(await db.rawQuery(
+    return Sqflite.firstIntValue(await database.rawQuery(
             'SELECT COUNT(*) FROM course_tables_table WHERE name = \'name\'')) !=
         0;
   }
@@ -47,11 +48,11 @@ class CourseTableRepository {
   // This function will return a courseTable json string by the giving name
   // It will return a empty string if there's not a courseTable named by giving name.
   Future<String> getCourseTableJsonByName(String name) async {
-    if (!db.isOpen) {
+    if (!database.isOpen) {
       throw SqliteException(
           SqlError.SQLITE_NOTFOUND, "Sqlite database not found or cannot open");
     }
-    final res = await db.query(
+    final res = await database.query(
       'course_tables_table',
       columns: ['json'],
       where: 'name = ?',
@@ -60,14 +61,18 @@ class CourseTableRepository {
     return res.isEmpty ? "" : res[0]['json'].toString();
   }
 
+  Future<CourseTable?> getCourseTableByName(String name) async {
+    return jsonToCourseTable(await getCourseTableJsonByName(name));
+  }
+
   // This function will return a List that contains all courseTables' name
   // If there isn't any courseTable existed, it will return empty List
   Future<List<String>> getCourseTableNames() async {
-    if (!db.isOpen) {
+    if (!database.isOpen) {
       throw SqliteException(
           SqlError.SQLITE_NOTFOUND, "Sqlite database not found or cannot open");
     }
-    final res = await db.query(
+    final res = await database.query(
       'course_tables_table',
       columns: ['name'],
     );
@@ -75,7 +80,7 @@ class CourseTableRepository {
   }
 
   Future<void> insertCourseTable(String name, String json) async {
-    int cnt = await db.insert(
+    int cnt = await database.insert(
       'course_tables_table',
       <String, Object?>{'name': name, 'json': json},
       conflictAlgorithm: ConflictAlgorithm.fail,
@@ -85,8 +90,8 @@ class CourseTableRepository {
     }
   }
 
-  Future<void> deleteCourseTable(String name) async {
-    int cnt = await db.delete(
+  Future<void> deleteCourseTableByName(String name) async {
+    int cnt = await database.delete(
       'course_tables_table',
       where: 'name = ?',
       whereArgs: [name],

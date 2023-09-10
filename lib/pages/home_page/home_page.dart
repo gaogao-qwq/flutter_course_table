@@ -14,32 +14,39 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table/configure_dependencies.dart';
 import 'package:flutter_course_table/constants.dart';
-import 'package:flutter_course_table/internal/database/course_table_repository.dart';
+import 'package:flutter_course_table/internal/prefs/shared_preferences_repository.dart';
 import 'package:flutter_course_table/internal/types/course_table.dart';
-import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
+import 'package:flutter_course_table/pages/data.dart';
 import 'package:flutter_course_table/pages/home_page/course_table_widget_builder.dart';
 import 'package:flutter_course_table/pages/import_page/import_page.dart';
 import 'package:flutter_course_table/pages/settings_page/settings_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+
+final prefsRepository = getIt<SharedPreferencesRepository>();
+
+final List<NavigationRailDestination> navRailDestinations = appBarDestinations
+    .map(
+      (destination) => NavigationRailDestination(
+        icon: Tooltip(
+          message: destination.label,
+          child: destination.icon,
+        ),
+        selectedIcon: Tooltip(
+          message: destination.label,
+          child: destination.selectedIcon,
+        ),
+        label: Text(destination.label),
+      ),
+    )
+    .toList();
 
 class CourseTableHomePage extends StatefulWidget {
-  final CourseTable? initCourseTable;
-  final List<String> names;
-  final bool useLightMode;
-  final void Function(bool useLightMode) handleBrightnessChange;
-  final SharedPreferences prefs;
-  final CourseTableRepository courseTableRepository;
-
-  const CourseTableHomePage(
-      {super.key,
-      required this.initCourseTable,
-      required this.names,
-      required this.useLightMode,
-      required this.handleBrightnessChange,
-      required this.prefs,
-      required this.courseTableRepository});
+  const CourseTableHomePage({super.key});
 
   @override
   State<CourseTableHomePage> createState() => _CourseTableHomePageState();
@@ -48,29 +55,17 @@ class CourseTableHomePage extends StatefulWidget {
 class _CourseTableHomePageState extends State<CourseTableHomePage>
     with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-  String currCourseTableName = "";
-  int currPage = 0;
-  CourseTable? courseTable;
-  List<String> names = [];
-  List<DropdownMenuEntry<String>> tableEntries = [];
-  List<DropdownMenuEntry<int>> weekEntries = [];
   late final AnimationController controller;
   late final CurvedAnimation railAnimation;
   late final ReverseAnimation barAnimation;
   bool controllerInitialized = false;
   bool showLargeSizeLayout = false;
-
   int screenIndex = ScreenSelected.courseTable.value;
+  late PageController pageController;
 
   @override
   void initState() {
     super.initState();
-    currCourseTableName = widget.prefs.getString("currCourseTableName") ?? "";
-    courseTable = widget.initCourseTable;
-    names = widget.names;
-    currPage = getCurrCourseTableInitialPage();
-    tableEntries = getStoredCourseTableEntries();
-    weekEntries = getStoredCourseTableWeekEntries();
     controller = AnimationController(
       duration: Duration(milliseconds: transitionLength.toInt() * 2),
       vsync: this,
@@ -84,6 +79,7 @@ class _CourseTableHomePageState extends State<CourseTableHomePage>
   @override
   void dispose() {
     controller.dispose();
+    pageController.dispose();
     super.dispose();
   }
 
@@ -113,6 +109,13 @@ class _CourseTableHomePageState extends State<CourseTableHomePage>
 
   @override
   Widget build(BuildContext context) {
+    final courseTableNames =
+        context.select((CourseTableData data) => data.courseTableNames);
+    final courseTable =
+        context.select((CourseTableData data) => data.courseTable);
+    final currWeek = context.select((CourseTableData data) => data.currWeek);
+    pageController = PageController(initialPage: currWeek - 1);
+
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
@@ -121,8 +124,9 @@ class _CourseTableHomePageState extends State<CourseTableHomePage>
           animationController: controller,
           gestureDetector: GestureDetector(),
           railAnimation: railAnimation,
-          appBar: createAppBar(),
-          body: createScreenFor(ScreenSelected.values[screenIndex]),
+          appBar: createAppBar(courseTableNames),
+          body:
+              createScreenFor(ScreenSelected.values[screenIndex], courseTable),
           navigationRail: NavigationRail(
             extended: true,
             destinations: navRailDestinations,
@@ -132,10 +136,10 @@ class _CourseTableHomePageState extends State<CourseTableHomePage>
                 handleScreenChanged(index);
               });
             },
-            trailing: Expanded(
+            trailing: const Expanded(
               child: Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: _expandedTrailingActions()),
+                  padding: EdgeInsets.only(bottom: 20),
+                  child: ExpandedTrailingActions()),
             ),
           ),
           navigationBar: NavigationBars(
@@ -152,64 +156,17 @@ class _CourseTableHomePageState extends State<CourseTableHomePage>
     );
   }
 
-  Future<void> handleCurrCourseTableChange(String courseTableName) async {
-    names = await widget.courseTableRepository.getCourseTableNames();
-    final jsonString = await widget.courseTableRepository
-        .getCourseTableJsonByName(courseTableName);
-    setState(() {
-      currCourseTableName = courseTableName;
-      courseTable = jsonToCourseTable(jsonString);
-      tableEntries = getStoredCourseTableEntries();
-      weekEntries = getStoredCourseTableWeekEntries();
-      currPage = getCurrCourseTableInitialPage();
-    });
-    widget.prefs.setString("currCourseTableName", courseTableName);
-  }
-
-  Future<void> handleCourseTableDelete(String courseTableName) async {
-    await widget.courseTableRepository.deleteCourseTable(courseTableName);
-
-    names = await widget.courseTableRepository.getCourseTableNames();
-    setState(() {
-      tableEntries = getStoredCourseTableEntries();
-    });
-
-    if (currCourseTableName == courseTableName) {
-      if (names.isEmpty) {
-        setState(() {
-          currCourseTableName = "";
-          courseTable = null;
-          currPage = 0;
-        });
-        return;
-      }
-      setState(() {
-        handleCurrCourseTableChange(names[0]);
-        currPage = 0;
-      });
-    }
-  }
-
-  void handleCurrPageChanged(int page) {
-    setState(() {
-      currPage = page;
-    });
-  }
-
-  void handleCourseTableDisposed() {
-    currPage = getCurrCourseTableInitialPage();
-  }
-
   void handleScreenChanged(int screenSelected) {
     setState(() {
       screenIndex = screenSelected;
     });
   }
 
-  Widget createScreenFor(ScreenSelected screenSelected) {
+  Widget createScreenFor(
+      ScreenSelected screenSelected, CourseTable? courseTable) {
     switch (screenSelected) {
       case ScreenSelected.courseTable:
-        return courseTable == null || currCourseTableName.isEmpty
+        return courseTable == null
             ? Expanded(
                 child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -227,24 +184,11 @@ class _CourseTableHomePageState extends State<CourseTableHomePage>
                   ),
                 ],
               ))
-            : CourseTableWidget(
-                initPage: getCurrCourseTableInitialPage(),
-                currPage: currPage,
-                courseTable: courseTable!,
-                handleCurrPageChanged: handleCurrPageChanged,
-                handleCourseTableDisposed: handleCourseTableDisposed,
-              );
+            : CourseTableWidget(pageController: pageController);
       case ScreenSelected.import:
-        return ImportTablePage(
-            handleCurrCourseTableChange: handleCurrCourseTableChange,
-            courseTableRepository: widget.courseTableRepository);
+        return const ImportTablePage();
       case ScreenSelected.settings:
-        return SettingsPage(
-            currCourseTableName: currCourseTableName,
-            handleBrightnessChange: widget.handleBrightnessChange,
-            handleCurrCourseTableChange: handleCurrCourseTableChange,
-            handleCourseTableDelete: handleCourseTableDelete,
-            courseTableRepository: widget.courseTableRepository);
+        return const SettingsPage();
       default:
         return Expanded(
             child: Column(
@@ -266,132 +210,48 @@ class _CourseTableHomePageState extends State<CourseTableHomePage>
     }
   }
 
-  PreferredSizeWidget createAppBar() {
-    Widget title;
-    switch (screenIndex) {
-      case 0:
-        title = names.isNotEmpty
-            ? _appBarTitle()
-            : const Text("Flutter Course Table");
-        break;
-      case 1:
-        title = const Text("导入课表");
-        break;
-      case 2:
-        title = const Text("设置");
-        break;
-      default:
-        title = const Text("Flutter Course Table");
-    }
-
+  PreferredSizeWidget createAppBar(List<String> courseTableNames) {
     return AppBar(
-        title: title,
+        title: () {
+          Widget title;
+          switch (screenIndex) {
+            case 0:
+              title = courseTableNames.isEmpty
+                  ? const Text("Flutter Course Table")
+                  : menu();
+              break;
+            case 1:
+              title = const Text("导入课表");
+              break;
+            case 2:
+              title = const Text("设置");
+              break;
+            default:
+              title = const Text("Flutter Course Table");
+          }
+          return title;
+        }(),
         notificationPredicate: (ScrollNotification notification) {
           return notification.depth == 1;
         },
         scrolledUnderElevation: 4.0,
-        actions: (showLargeSizeLayout)
-            ? [Container()]
-            : [
-                _BrightnessButton(
-                  handleBrightnessChange: widget.handleBrightnessChange,
-                )
-              ]);
+        actions:
+            (showLargeSizeLayout) ? [Container()] : [const BrightnessButton()]);
   }
 
-  Widget _appBarTitle() => Container(
-        alignment: Alignment.bottomLeft,
-        child: FittedBox(
-          child: Row(
-            children: [
-              DropdownMenu(
-                menuHeight: 400,
-                leadingIcon: const Icon(Icons.table_chart),
-                initialSelection: currCourseTableName,
-                inputDecorationTheme:
-                    const InputDecorationTheme(isCollapsed: true),
-                dropdownMenuEntries: tableEntries,
-                onSelected: (value) async {
-                  if (value == null || value.isEmpty) return;
-                  await handleCurrCourseTableChange(value);
-                },
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 10),
-                child: DropdownMenu(
-                  menuHeight: 400,
-                  leadingIcon: const Icon(Icons.calendar_today),
-                  initialSelection: currPage,
-                  inputDecorationTheme:
-                      const InputDecorationTheme(isCollapsed: true),
-                  dropdownMenuEntries: weekEntries,
-                  onSelected: (value) {
-                    if (value == null) return;
-                    handleCurrPageChanged(value);
-                  },
-                ),
-              )
-            ],
-          ),
-        ),
-      );
-
-  int getCurrCourseTableInitialPage() {
-    if (courseTable == null) return 0;
-    DateTime firstWeekDateTime = DateTime.parse(courseTable!.firstWeekDate);
-    if (DateTime.now().isBefore(firstWeekDateTime)) return 0;
-    int currWeek = DateTime.now().difference(firstWeekDateTime).inDays ~/ 7;
-    if (currWeek > (courseTable!.week!)) {
-      return courseTable!.week! - 1;
-    }
-    return currWeek;
-  }
-
-  Widget _expandedTrailingActions() => Container(
-        alignment: Alignment.bottomCenter,
-        constraints: const BoxConstraints.tightFor(width: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 30),
-        child: ListView(
+  Widget menu() {
+    return Container(
+      alignment: Alignment.bottomLeft,
+      child: FittedBox(
+        child: Row(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Divider(),
-                Row(
-                  children: [
-                    widget.useLightMode
-                        ? const Icon(Icons.light_mode_outlined)
-                        : const Icon(Icons.dark_mode_outlined),
-                    const Text('更改显示模式'),
-                    Expanded(child: Container()),
-                    Switch(
-                        value: widget.useLightMode,
-                        onChanged: (value) {
-                          widget.handleBrightnessChange(value);
-                        }),
-                  ],
-                ),
-              ],
-            ),
+            CourseTableMenu(pageController: pageController),
+            const Padding(padding: EdgeInsets.only(left: 10)),
+            WeekMenu(pageController: pageController),
           ],
         ),
-      );
-
-  List<DropdownMenuEntry<String>> getStoredCourseTableEntries() {
-    List<DropdownMenuEntry<String>> items = [];
-    for (var element in names) {
-      items.add(DropdownMenuEntry(value: element, label: element));
-    }
-    return items;
-  }
-
-  List<DropdownMenuEntry<int>> getStoredCourseTableWeekEntries() {
-    List<DropdownMenuEntry<int>> items = [];
-    if (courseTable == null) return items;
-    for (int i = 0; i < (courseTable!.week ?? 0); i++) {
-      items.add(DropdownMenuEntry(value: i, label: "第${i + 1}周"));
-    }
-    return items;
+      ),
+    );
   }
 }
 
@@ -515,22 +375,6 @@ class _NavigationTransitionState extends State<NavigationTransition> {
     );
   }
 }
-
-final List<NavigationRailDestination> navRailDestinations = appBarDestinations
-    .map(
-      (destination) => NavigationRailDestination(
-        icon: Tooltip(
-          message: destination.label,
-          child: destination.icon,
-        ),
-        selectedIcon: Tooltip(
-          message: destination.label,
-          child: destination.selectedIcon,
-        ),
-        label: Text(destination.label),
-      ),
-    )
-    .toList();
 
 class SizeAnimation extends CurvedAnimation {
   SizeAnimation(Animation<double> parent)
@@ -674,26 +518,125 @@ class _BarTransition extends State<BarTransition> {
   }
 }
 
-class _BrightnessButton extends StatelessWidget {
-  final Function handleBrightnessChange;
-  final bool showTooltipBelow = true;
-
-  const _BrightnessButton({
-    required this.handleBrightnessChange,
-  });
+class ExpandedTrailingActions extends StatelessWidget {
+  const ExpandedTrailingActions({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isBright = Theme.of(context).brightness == Brightness.light;
-    return Tooltip(
-      preferBelow: showTooltipBelow,
-      message: '更改显示模式',
-      child: IconButton(
-        icon: isBright
-            ? const Icon(Icons.light_mode_outlined)
-            : const Icon(Icons.dark_mode_outlined),
-        onPressed: () => handleBrightnessChange(!isBright),
+    final isLightMode = context.select((AppThemeData data) => data.isLightMode);
+    return Container(
+      alignment: Alignment.bottomCenter,
+      constraints: const BoxConstraints.tightFor(width: 250),
+      padding: const EdgeInsets.symmetric(horizontal: 30),
+      child: ListView(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Divider(),
+              Row(
+                children: [
+                  prefsRepository.isLightMode()
+                      ? const Icon(Icons.light_mode_outlined)
+                      : const Icon(Icons.dark_mode_outlined),
+                  const Text('更改显示模式'),
+                  Expanded(child: Container()),
+                  Switch(
+                      value: isLightMode,
+                      onChanged: (value) {
+                        context.read<AppThemeData>().useLightMode(value);
+                      }),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     );
+  }
+}
+
+class BrightnessButton extends StatelessWidget {
+  const BrightnessButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isBright = context.select((AppThemeData data) => data.isLightMode);
+    return Tooltip(
+      preferBelow: true,
+      message: '更改显示模式',
+      child: IconButton(
+          icon: isBright
+              ? const Icon(Icons.light_mode_outlined)
+              : const Icon(Icons.dark_mode_outlined),
+          onPressed: () =>
+              context.read<AppThemeData>().useLightMode(!isBright)),
+    );
+  }
+}
+
+class CourseTableMenu extends StatelessWidget {
+  final PageController pageController;
+
+  const CourseTableMenu({super.key, required this.pageController});
+
+  @override
+  Widget build(BuildContext context) {
+    final courseTableNames =
+        context.select((CourseTableData data) => data.courseTableNames);
+    final entries = List.generate(
+        courseTableNames.length,
+        (index) => DropdownMenuEntry(
+            value: courseTableNames[index], label: courseTableNames[index]));
+    return DropdownMenu(
+      menuHeight: 400,
+      leadingIcon: const Icon(Icons.table_chart),
+      initialSelection: prefsRepository.getCurrentCourseTableName(),
+      inputDecorationTheme: const InputDecorationTheme(isCollapsed: true),
+      dropdownMenuEntries: entries,
+      onSelected: (value) async {
+        if (value == null || value.isEmpty) return;
+        await context.read<CourseTableData>().changeByName(value);
+        final initWeek = context.read<CourseTableData>().getInitWeek();
+        pageController.jumpToPage(initWeek - 1);
+      },
+    );
+  }
+}
+
+class WeekMenu extends StatelessWidget {
+  final PageController pageController;
+  const WeekMenu({super.key, required this.pageController});
+
+  @override
+  Widget build(BuildContext context) {
+    final courseTableWeek =
+        context.select((CourseTableData data) => data.courseTable?.week);
+    final initialSelection =
+        context.select((CourseTableData data) => data.currWeek);
+    final entries = List.generate(courseTableWeek!, (index) {
+      return DropdownMenuEntry(value: index + 1, label: "第${index + 1}周");
+    });
+    return DropdownMenu(
+      menuHeight: 400,
+      leadingIcon: const Icon(Icons.calendar_today),
+      initialSelection: initialSelection,
+      inputDecorationTheme: const InputDecorationTheme(isCollapsed: true),
+      dropdownMenuEntries: entries,
+      onSelected: (value) {
+        if (value == null) return;
+        animateToTargetPage(value);
+      },
+    );
+  }
+
+  void animateToTargetPage(int targetPage) {
+    int oldPage = pageController.page!.toInt();
+    if ((pageController.page! - targetPage).abs() < 1) return;
+    pageController.animateToPage(targetPage - 1,
+        // duration = sqrt(abs(differences between oldPage & targetPage)) * 300ms
+        duration: Duration(
+            milliseconds: sqrt((targetPage - oldPage).abs()).toInt() * 300),
+        curve: Curves.easeInOut);
   }
 }

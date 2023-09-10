@@ -17,26 +17,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/animations/fade_page_route.dart';
 import 'package:flutter_course_table/constants.dart';
-import 'package:flutter_course_table/internal/database/course_table_repository.dart';
+import 'package:flutter_course_table/pages/data.dart';
+import 'package:flutter_course_table/pages/settings_page/developer_page.dart';
 import 'package:flutter_course_table/pages/settings_page/export_course_table_to_xlsx_dialog.dart';
 import 'package:flutter_course_table/pages/settings_page/manage_course_table_widget.dart';
 import 'package:flutter_course_table/utils/show_info_dialog.dart';
+import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
-  final String currCourseTableName;
-  final void Function(bool useLightMode) handleBrightnessChange;
-  final Future<void> Function(String courseTableName)
-      handleCurrCourseTableChange;
-  final Future<void> Function(String courseTableName) handleCourseTableDelete;
-  final CourseTableRepository courseTableRepository;
-
-  const SettingsPage(
-      {super.key,
-      required this.currCourseTableName,
-      required this.handleBrightnessChange,
-      required this.handleCurrCourseTableChange,
-      required this.handleCourseTableDelete,
-      required this.courseTableRepository});
+  const SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -61,33 +50,33 @@ class _SettingsPageState extends State<SettingsPage>
   // TODO: Add API selector support.
   @override
   Widget build(BuildContext context) {
-    final isBright = Theme.of(context).brightness == Brightness.light;
+    final isLightMode = context.select((AppThemeData data) => data.isLightMode);
+    final courseTableNames =
+        context.select((CourseTableData data) => data.courseTableNames);
 
     return Expanded(
         child: Card(
       child: ListView(
         children: [
           ListTile(
-            leading: isBright
+            leading: isLightMode
                 ? const Icon(Icons.light_mode)
                 : const Icon(Icons.dark_mode),
             title: const Text("更改显示模式"),
             trailing: Switch(
-                value: isBright,
+                value: isLightMode,
                 onChanged: (value) {
-                  widget.handleBrightnessChange(value);
+                  context.read<AppThemeData>().useLightMode(value);
                 }),
             onTap: () {
-              widget.handleBrightnessChange(!isBright);
+              context.read<AppThemeData>().useLightMode(!isLightMode);
             },
           ),
           ListTile(
             leading: const Icon(Icons.manage_search),
             title: const Text("管理课表"),
-            onTap: () async {
-              final names =
-                  await widget.courseTableRepository.getCourseTableNames();
-              if (names.isEmpty) {
+            onTap: () {
+              if (courseTableNames.isEmpty) {
                 if (!mounted) return;
                 showInfoDialog(context, "Oops", "没有找到导入的课表");
                 return;
@@ -96,24 +85,24 @@ class _SettingsPageState extends State<SettingsPage>
               Navigator.push(
                   context,
                   FadePageRoute(
-                      builder: (context) => ManageCourseTableWidget(
-                            currCourseTableName: widget.currCourseTableName,
-                            handleCurrCourseTableChanged:
-                                widget.handleCurrCourseTableChange,
-                            handleCourseTableDeleted:
-                                widget.handleCourseTableDelete,
-                            courseTableRepository: widget.courseTableRepository,
-                            courseTableNames: names,
-                          )));
+                      builder: (context) => Provider(
+                          create: (BuildContext context) {
+                            final courseTableNames = context
+                                .read<CourseTableData>()
+                                .courseTableNames;
+                            return CourseTableSelectorData(courseTableNames);
+                          },
+                          child: ChangeNotifierProvider(
+                              create: (context) =>
+                                  CourseTableSelectorData(courseTableNames),
+                              child: const ManageCourseTableWidget()))));
             },
           ),
           ListTile(
             leading: const Icon(Icons.save),
             title: const Text("导出课表"),
             onTap: () async {
-              final names =
-                  await widget.courseTableRepository.getCourseTableNames();
-              if (names.isEmpty) {
+              if (courseTableNames.isEmpty) {
                 if (!mounted) return;
                 showInfoDialog(context, "Oops", "没有找到可导出的课表");
                 return;
@@ -123,14 +112,19 @@ class _SettingsPageState extends State<SettingsPage>
                   context,
                   DialogRoute(
                       context: context,
-                      builder: (context) => ExportCourseTableToXlsxDialog(
-                          names: names,
-                          currCourseTableName: widget.currCourseTableName,
-                          courseTableRepository:
-                              widget.courseTableRepository)));
+                      builder: (context) =>
+                          const ExportCourseTableToXlsxDialog()));
             },
           ),
           const Divider(),
+          ListTile(
+            leading: const Icon(Icons.developer_mode_rounded),
+            title: const Text("开发者选项"),
+            onTap: () {
+              Navigator.push(context,
+                  FadePageRoute(builder: (context) => const DeveloperPage()));
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.info),
             title: const Text("关于"),

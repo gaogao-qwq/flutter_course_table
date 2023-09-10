@@ -16,19 +16,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/animations/fade_page_route.dart';
-import 'package:flutter_course_table/internal/database/course_table_repository.dart';
 import 'package:flutter_course_table/pages/import_page/import_from_crawler.dart';
 import 'package:flutter_course_table/pages/import_page/import_from_editor.dart';
 
 class ImportTablePage extends StatefulWidget {
-  final Future<void> Function(String courseTableName)
-      handleCurrCourseTableChange;
-  final CourseTableRepository courseTableRepository;
-
-  const ImportTablePage(
-      {super.key,
-      required this.handleCurrCourseTableChange,
-      required this.courseTableRepository});
+  const ImportTablePage({super.key});
 
   @override
   State<ImportTablePage> createState() => _ImportTablePageState();
@@ -49,12 +41,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                   Navigator.push(
                       context,
                       FadePageRoute(
-                          builder: (context) => ImportFromCrawler(
-                                handleCurrCourseTableChange:
-                                    widget.handleCurrCourseTableChange,
-                                courseTableRepository:
-                                    widget.courseTableRepository,
-                              )));
+                          builder: (context) => const ImportFromCrawler()));
                 },
                 style: ElevatedButton.styleFrom(
                     minimumSize: const Size(120, 50),
@@ -71,7 +58,7 @@ class _ImportTablePageState extends State<ImportTablePage> {
                 style: ElevatedButton.styleFrom(
                     minimumSize: const Size(120, 50),
                     backgroundColor: colorScheme.onSecondary),
-                child: const Text("手动创建课表"))
+                child: const Text("手动创建课表")),
           ],
         ),
       ),

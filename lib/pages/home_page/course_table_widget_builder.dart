@@ -14,74 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/constants.dart';
 import 'package:flutter_course_table/internal/types/course_info.dart';
-import 'package:flutter_course_table/internal/types/course_table.dart';
+import 'package:flutter_course_table/pages/data.dart';
+import 'package:provider/provider.dart';
 import 'package:spannable_grid/spannable_grid.dart';
 
 class CourseTableWidget extends StatefulWidget {
-  final int initPage;
-  final int currPage;
-  final CourseTable courseTable;
-  final void Function(int) handleCurrPageChanged;
-  final void Function() handleCourseTableDisposed;
+  final PageController pageController;
 
-  const CourseTableWidget(
-      {super.key,
-      required this.initPage,
-      required this.currPage,
-      required this.courseTable,
-      required this.handleCurrPageChanged,
-      required this.handleCourseTableDisposed});
+  const CourseTableWidget({super.key, required this.pageController});
 
   @override
-  State<CourseTableWidget> createState() => _CourseTableWidgetState();
+  State<StatefulWidget> createState() => _CourseTableWidgetState();
 }
 
 class _CourseTableWidgetState extends State<CourseTableWidget> {
-  late int courseTableRow;
-  late PageController pageController;
-  late bool _isAnimating;
-
-  @override
-  void initState() {
-    super.initState();
-    courseTableRow = widget.courseTable.row ?? 0;
-    pageController =
-        PageController(initialPage: widget.initPage, keepPage: false);
-    _isAnimating = false;
-  }
-
-  @override
-  void didUpdateWidget(covariant CourseTableWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => animateToTargetPage(widget.currPage));
-  }
-
-  @override
-  void dispose() {
-    widget.handleCourseTableDisposed();
-    pageController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return _buildPageView();
-  }
-
-  Widget _buildPageView() {
     return Expanded(
       child: PageView(
         scrollDirection: Axis.horizontal,
-        controller: pageController,
+        controller: widget.pageController,
         onPageChanged: (value) {
-          if (_isAnimating) return;
-          widget.handleCurrPageChanged(value);
+          context.read<CourseTableData>().setCurrWeek(value + 1);
         },
         children: _buildTableList(),
       ),
@@ -89,16 +46,18 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
   }
 
   List<Widget> _buildTableList() {
-    final isBright = Theme.of(context).brightness == Brightness.light;
+    final courseTable =
+        context.select((CourseTableData data) => data.courseTable);
+    final isBright = context.select((AppThemeData data) => data.isLightMode);
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final isLargeLayout =
         MediaQuery.of(context).size.width > largeWidthBreakpoint;
 
-    int weekNums = widget.courseTable.week ?? 0;
-    int row = widget.courseTable.row ?? 0;
-    int col = widget.courseTable.col ?? 0;
+    int weekNums = courseTable!.week ?? 0;
+    int row = courseTable.row ?? 0;
+    int col = courseTable.col ?? 0;
 
-    DateTime dateIterator = DateTime.parse(widget.courseTable.firstWeekDate);
+    DateTime dateIterator = DateTime.parse(courseTable.firstWeekDate);
     List<Widget> weekList = [
       const Text("周一"),
       const Text("周二"),
@@ -109,7 +68,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
       const Text("周日")
     ];
 
-    List<List<CourseInfo>> courseTableData = widget.courseTable.data;
+    List<List<CourseInfo>> courseTableData = courseTable.data;
     List<List<List<CourseInfo>>> courseTableList =
         List<List<List<CourseInfo>>>.generate(
             weekNums, (_) => <List<CourseInfo>>[]);
@@ -119,7 +78,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
     }
 
     List<Widget> courseNums =
-        List.generate(widget.courseTable.row!, (index) => Text("${index + 1}"));
+        List.generate(courseTable.row!, (index) => Text("${index + 1}"));
 
     List<Container> tableList = [];
     // 遍历周数
@@ -304,20 +263,5 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
       ));
     }
     return tableList;
-  }
-
-  void animateToTargetPage(int targetPage) {
-    int oldPage = pageController.page!.toInt();
-    if ((pageController.page! - targetPage).abs() < 1) return;
-    _isAnimating = true;
-    pageController
-        .animateToPage(targetPage,
-            // duration = sqrt(abs(differences between oldPage & targetPage)) * 300ms
-            duration: Duration(
-                milliseconds: sqrt((targetPage - oldPage).abs()).toInt() * 300),
-            curve: Curves.easeInOut)
-        .then((value) {
-      _isAnimating = false;
-    });
   }
 }
