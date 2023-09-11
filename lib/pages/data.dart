@@ -169,16 +169,30 @@ class CourseTableSelectorData with ChangeNotifier {
   }
 }
 
-class AppThemeData with ChangeNotifier {
-  bool _isLightMode;
+class AppSettingData with ChangeNotifier {
+  late bool _isLightMode;
+  late String _currCourseTableName;
+  late String _crawlerApiUrl;
 
-  AppThemeData(this._isLightMode);
+  AppSettingData() {
+    _isLightMode = prefsRepository.isLightMode();
+    _currCourseTableName = prefsRepository.getCurrentCourseTableName();
+    _crawlerApiUrl = prefsRepository.getCrawlerApiUrl();
+  }
 
   bool get isLightMode => _isLightMode;
+  String get currCourseTableName => _currCourseTableName;
+  String get crawlerApiUrl => _crawlerApiUrl;
 
   void useLightMode(bool useLightMode) {
     _isLightMode = useLightMode;
     prefs.setBool("useLightMode", useLightMode);
+    notifyListeners();
+  }
+
+  void setCrawlerApiUrl(String url) {
+    _crawlerApiUrl = url;
+    prefs.setString("crawlerApiUrl", url);
     notifyListeners();
   }
 }

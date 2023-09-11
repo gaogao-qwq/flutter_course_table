@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_course_table/internal/handlers/response_handlers.dart';
 import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
 import 'package:flutter_course_table/pages/data.dart';
+import 'package:flutter_course_table/pages/settings_page/crawler_api_selector_dialog.dart';
 import 'package:provider/provider.dart';
 
 class DeveloperPage extends StatefulWidget {
@@ -30,6 +31,7 @@ class DeveloperPage extends StatefulWidget {
 class _DeveloperPageState extends State<DeveloperPage> {
   @override
   Widget build(BuildContext context) {
+    final appSettingsData = context.watch<AppSettingData>();
     return Scaffold(
       appBar: AppBar(
         title: const Text("开发者选项"),
@@ -41,6 +43,12 @@ class _DeveloperPageState extends State<DeveloperPage> {
               leading: const Icon(Icons.add),
               title: const Text("导入测试课表"),
               onTap: () async {
+                if (appSettingsData.crawlerApiUrl.isEmpty) {
+                  showDialog(
+                      context: context,
+                      builder: (context) =>
+                          const CrawlerApiSelectorDialog(title: "请先设置爬虫服务地址"));
+                }
                 showDialog(
                     context: context,
                     builder: (context) =>
@@ -69,6 +77,7 @@ class _ImportTestTableState extends State<ImportTestTable> {
   @override
   Widget build(BuildContext context) {
     final courseTableData = context.watch<CourseTableData>();
+    final appSettingData = context.watch<AppSettingData>();
     String name = widget.initName;
     bool isNameUsed =
         courseTableData.courseTableNames.contains(name) ? true : false;
@@ -127,7 +136,9 @@ class _ImportTestTableState extends State<ImportTestTable> {
                               date = date.add(const Duration(days: 1));
                             }
                             final courseTable = await fetchTestCourseTable(
-                                date.toIso8601String(), name);
+                                date.toIso8601String(),
+                                name,
+                                appSettingData.crawlerApiUrl);
                             final jsonString = courseTableToJson(courseTable!);
                             if (!mounted) return;
                             courseTableData.add(name, jsonString);

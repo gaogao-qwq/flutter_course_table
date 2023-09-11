@@ -48,7 +48,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
   List<Widget> _buildTableList() {
     final courseTable =
         context.select((CourseTableData data) => data.courseTable);
-    final isBright = context.select((AppThemeData data) => data.isLightMode);
+    final isBright = context.select((AppSettingData data) => data.isLightMode);
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final isLargeLayout =
         MediaQuery.of(context).size.width > largeWidthBreakpoint;

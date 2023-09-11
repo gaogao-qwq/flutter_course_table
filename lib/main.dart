@@ -39,8 +39,7 @@ Future main() async {
   final courseTable =
       await courseTableRepository.getCourseTableByName(currCourseTableName);
   runApp(MultiProvider(providers: [
-    ChangeNotifierProvider(
-        create: (context) => AppThemeData(prefsRepository.isLightMode())),
+    ChangeNotifierProvider(create: (context) => AppSettingData()),
     ChangeNotifierProvider(
       create: (BuildContext context) =>
           CourseTableData(courseTableNames, courseTable),
@@ -63,7 +62,7 @@ class _CourseTableAppState extends State<CourseTableApp> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = context.select((AppThemeData data) => data.isLightMode)
+    final themeMode = context.select((AppSettingData data) => data.isLightMode)
         ? ThemeMode.light
         : ThemeMode.dark;
     return MaterialApp(

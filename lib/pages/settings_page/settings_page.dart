@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_course_table/animations/fade_page_route.dart';
 import 'package:flutter_course_table/constants.dart';
 import 'package:flutter_course_table/pages/data.dart';
+import 'package:flutter_course_table/pages/settings_page/crawler_api_selector_dialog.dart';
 import 'package:flutter_course_table/pages/settings_page/developer_page.dart';
 import 'package:flutter_course_table/pages/settings_page/export_course_table_to_xlsx_dialog.dart';
 import 'package:flutter_course_table/pages/settings_page/manage_course_table_widget.dart';
@@ -47,10 +48,9 @@ class _SettingsPageState extends State<SettingsPage>
     super.dispose();
   }
 
-  // TODO: Add API selector support.
   @override
   Widget build(BuildContext context) {
-    final isLightMode = context.select((AppThemeData data) => data.isLightMode);
+    final appSettingData = context.watch<AppSettingData>();
     final courseTableNames =
         context.select((CourseTableData data) => data.courseTableNames);
 
@@ -59,17 +59,29 @@ class _SettingsPageState extends State<SettingsPage>
       child: ListView(
         children: [
           ListTile(
-            leading: isLightMode
+            leading: appSettingData.isLightMode
                 ? const Icon(Icons.light_mode)
                 : const Icon(Icons.dark_mode),
             title: const Text("更改显示模式"),
             trailing: Switch(
-                value: isLightMode,
+                value: appSettingData.isLightMode,
                 onChanged: (value) {
-                  context.read<AppThemeData>().useLightMode(value);
+                  context.read<AppSettingData>().useLightMode(value);
                 }),
             onTap: () {
-              context.read<AppThemeData>().useLightMode(!isLightMode);
+              context
+                  .read<AppSettingData>()
+                  .useLightMode(!appSettingData.isLightMode);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.api_rounded),
+            title: const Text("设置爬虫服务地址"),
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) =>
+                      const CrawlerApiSelectorDialog(title: "设置爬虫服务地址"));
             },
           ),
           ListTile(
