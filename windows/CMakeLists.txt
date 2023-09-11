@@ -4,7 +4,7 @@ project(flutter_course_table_demo LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
-set(BINARY_NAME "flutter_course_table_demo")
+set(BINARY_NAME "flutter_course_table")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
