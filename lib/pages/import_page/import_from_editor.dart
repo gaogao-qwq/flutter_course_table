@@ -33,7 +33,7 @@ class _ImportFromEditorState extends State<ImportFromEditor> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [Text("前有通路"), Text("接下来，敬请期待。")],
+          children: [Text("前有通路，所以，等待很重要"), Text("敬请见证")],
         ),
       ),
     );
