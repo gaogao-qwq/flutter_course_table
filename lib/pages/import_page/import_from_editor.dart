@@ -29,7 +29,13 @@ class _ImportFromEditorState extends State<ImportFromEditor> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("手动创建课表")),
-      body: const Placeholder(),
+      body: const Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [Text("前有通路"), Text("接下来，敬请期待。")],
+        ),
+      ),
     );
   }
 }
