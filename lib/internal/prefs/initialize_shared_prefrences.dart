@@ -30,5 +30,8 @@ Future<void> initializeSharedPreferences() async {
   if (!prefs.containsKey("currCourseTableName")) {
     prefs.setString("currCourseTableName", "");
   }
+  if (!prefs.containsKey("crawlerApiUrl")) {
+    prefs.setString("crawlerApiUrl", "");
+  }
   getIt.registerSingleton(prefs);
 }

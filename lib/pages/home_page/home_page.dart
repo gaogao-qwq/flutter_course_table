@@ -523,7 +523,8 @@ class ExpandedTrailingActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLightMode = context.select((AppThemeData data) => data.isLightMode);
+    final isLightMode =
+        context.select((AppSettingData data) => data.isLightMode);
     return Container(
       alignment: Alignment.bottomCenter,
       constraints: const BoxConstraints.tightFor(width: 250),
@@ -544,7 +545,7 @@ class ExpandedTrailingActions extends StatelessWidget {
                   Switch(
                       value: isLightMode,
                       onChanged: (value) {
-                        context.read<AppThemeData>().useLightMode(value);
+                        context.read<AppSettingData>().useLightMode(value);
                       }),
                 ],
               ),
@@ -561,7 +562,7 @@ class BrightnessButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isBright = context.select((AppThemeData data) => data.isLightMode);
+    final isBright = context.select((AppSettingData data) => data.isLightMode);
     return Tooltip(
       preferBelow: true,
       message: '更改显示模式',
@@ -570,7 +571,7 @@ class BrightnessButton extends StatelessWidget {
               ? const Icon(Icons.light_mode_outlined)
               : const Icon(Icons.dark_mode_outlined),
           onPressed: () =>
-              context.read<AppThemeData>().useLightMode(!isBright)),
+              context.read<AppSettingData>().useLightMode(!isBright)),
     );
   }
 }

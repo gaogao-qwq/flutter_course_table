@@ -19,15 +19,19 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter_course_table/configure_dependencies.dart';
+import 'package:flutter_course_table/internal/prefs/shared_preferences_repository.dart';
 import 'package:flutter_course_table/internal/types/course_table.dart';
 import 'package:flutter_course_table/internal/types/semester_info.dart';
 import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
 import 'package:http/http.dart' as http;
 
+final prefsRepository = getIt<SharedPreferencesRepository>();
+
 Future<List<SemesterInfo>?> fetchSemesterList(
     String? username, String? password) async {
   http.Response response = await http.get(
-    Uri.parse('http://localhost:56789/v1/semester-list'),
+    Uri.parse('${prefsRepository.getCrawlerApiUrl()}/v1/semester-list'),
     headers: {
       HttpHeaders.authorizationHeader:
           'Basic ${utf8.fuse(base64).encode('$username:$password')}'
@@ -62,7 +66,7 @@ Future<CourseTable?> fetchCourseTable(String? username, String? password,
       firstWeekDate == null ||
       name == null) return null;
   http.Response response = await http.get(
-    Uri.parse('http://localhost:56789/v1/course-table'),
+    Uri.parse('${prefsRepository.getCrawlerApiUrl()}/v1/course-table'),
     headers: {
       HttpHeaders.authorizationHeader:
           'Basic ${utf8.fuse(base64).encode('$username:$password')}',
@@ -84,9 +88,9 @@ Future<CourseTable?> fetchCourseTable(String? username, String? password,
 }
 
 Future<CourseTable?> fetchTestCourseTable(
-    String firstWeekDate, String name) async {
+    String firstWeekDate, String name, String crawlerApiUrl) async {
   http.Response response = await http.get(
-    Uri.parse('http://localhost:56789/v1/test'),
+    Uri.parse('$crawlerApiUrl/v1/test'),
   );
   return await parseCourseInfo(response.bodyBytes, firstWeekDate, name);
 }

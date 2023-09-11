@@ -27,6 +27,10 @@ class SharedPreferencesRepository {
     return prefs.getString("currCourseTableName") ?? "";
   }
 
+  String getCrawlerApiUrl() {
+    return prefs.getString("crawlerApiUrl") ?? "";
+  }
+
   void setCurrentCourseTableName(String name) {
     prefs.setString("currCourseTableName", name);
   }

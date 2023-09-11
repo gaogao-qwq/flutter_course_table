@@ -16,8 +16,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/animations/fade_page_route.dart';
+import 'package:flutter_course_table/pages/data.dart';
 import 'package:flutter_course_table/pages/import_page/import_from_crawler.dart';
 import 'package:flutter_course_table/pages/import_page/import_from_editor.dart';
+import 'package:flutter_course_table/pages/settings_page/crawler_api_selector_dialog.dart';
+import 'package:provider/provider.dart';
 
 class ImportTablePage extends StatefulWidget {
   const ImportTablePage({super.key});
@@ -29,7 +32,9 @@ class ImportTablePage extends StatefulWidget {
 class _ImportTablePageState extends State<ImportTablePage> {
   @override
   Widget build(BuildContext context) {
+    final appSettingData = context.watch<AppSettingData>();
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return Expanded(
       child: Card(
         child: Column(
@@ -38,10 +43,17 @@ class _ImportTablePageState extends State<ImportTablePage> {
           children: [
             ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      FadePageRoute(
-                          builder: (context) => const ImportFromCrawler()));
+                  if (appSettingData.crawlerApiUrl.isEmpty) {
+                    showDialog(
+                        context: context,
+                        builder: (context) => const CrawlerApiSelectorDialog(
+                            title: "请先设置爬虫服务地址"));
+                  } else {
+                    Navigator.push(
+                        context,
+                        FadePageRoute(
+                            builder: (context) => const ImportFromCrawler()));
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                     minimumSize: const Size(120, 50),
