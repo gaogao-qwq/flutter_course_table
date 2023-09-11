@@ -57,9 +57,10 @@ class _ExportCourseTableToXlsxDialogState
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 FittedBox(
+                  clipBehavior: Clip.antiAlias,
                   child: DropdownMenu(
                     label: const Text("导出课表"),
-                    leadingIcon: const Icon(Icons.delete),
+                    leadingIcon: const Icon(Icons.save),
                     initialSelection: currCourseTableName,
                     dropdownMenuEntries: entries,
                     onSelected: (value) {
