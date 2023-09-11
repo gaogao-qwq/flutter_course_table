@@ -44,7 +44,7 @@ class CourseTableData with ChangeNotifier {
     if (initWeek > (courseTable!.week!)) {
       return courseTable!.week!;
     }
-    return initWeek;
+    return initWeek + 1;
   }
 
   Future<void> add(String name, String json) async {
@@ -59,6 +59,7 @@ class CourseTableData with ChangeNotifier {
       throw Exception("Course table not exist");
     }
     _courseTable = await courseTableRepository.getCourseTableByName(name);
+    prefsRepository.setCurrentCourseTableName(name);
     _currWeek = getInitWeek();
     notifyListeners();
   }
