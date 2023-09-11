@@ -19,6 +19,7 @@ import 'package:flutter_course_table/configure_dependencies.dart';
 import 'package:flutter_course_table/internal/database/course_table_repository.dart';
 import 'package:flutter_course_table/internal/prefs/shared_preferences_repository.dart';
 import 'package:flutter_course_table/internal/types/course_table.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 final courseTableRepository = getIt<CourseTableRepository>();
 final prefsRepository = getIt<SharedPreferencesRepository>();
@@ -195,4 +196,17 @@ class AppSettingData with ChangeNotifier {
     prefs.setString("crawlerApiUrl", url);
     notifyListeners();
   }
+}
+
+class AppInfoData {
+  final PackageInfo _packageInfo;
+
+  AppInfoData(this._packageInfo);
+
+  String get appName => _packageInfo.appName;
+  String get packageName => _packageInfo.packageName;
+  String get version => _packageInfo.version;
+  String get buildNumber => _packageInfo.buildNumber;
+  String get buildSignature => _packageInfo.buildSignature;
+  String get legalese => "Copyright © 2023 Zhihao Zhou under GPL-3.0 license";
 }

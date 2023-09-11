@@ -16,7 +16,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/animations/fade_page_route.dart';
-import 'package:flutter_course_table/constants.dart';
 import 'package:flutter_course_table/pages/data.dart';
 import 'package:flutter_course_table/pages/settings_page/crawler_api_selector_dialog.dart';
 import 'package:flutter_course_table/pages/settings_page/developer_page.dart';
@@ -50,6 +49,7 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
+    final appInfoData = context.watch<AppInfoData>();
     final appSettingData = context.watch<AppSettingData>();
     final courseTableNames =
         context.select((CourseTableData data) => data.courseTableNames);
@@ -143,9 +143,10 @@ class _SettingsPageState extends State<SettingsPage>
             onTap: () {
               showAboutDialog(
                 context: context,
-                applicationName: AppInformation.appName.value,
-                applicationVersion: AppInformation.appVersion.value,
-                applicationLegalese: AppInformation.appLegalese.value,
+                applicationName: appInfoData.appName,
+                applicationVersion:
+                    "${appInfoData.version} (${appInfoData.buildNumber})",
+                applicationLegalese: appInfoData.legalese,
               );
             },
           ),
