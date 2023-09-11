@@ -30,10 +30,17 @@ class _ImportFromEditorState extends State<ImportFromEditor> {
     return Scaffold(
       appBar: AppBar(title: const Text("手动创建课表")),
       body: const Center(
-        child: Row(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [Text("前有通路，所以，等待很重要"), Text("敬请见证")],
+          children: [
+            Text("前有通路，所以，等待很重要", textScaleFactor: 1.5),
+            Padding(padding: EdgeInsets.all(10.0)),
+            Text(
+              "敬请见证",
+              textScaleFactor: 1.5,
+            )
+          ],
         ),
       ),
     );
