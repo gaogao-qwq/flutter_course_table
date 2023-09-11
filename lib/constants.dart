@@ -54,7 +54,7 @@ enum ScreenSelected {
 
 enum AppInformation {
   appName("Flutter Course Table"),
-  appVersion("0.1.0"),
+  appVersion("0.2.1"),
   appLegalese("Copyright © 2023 Zhihao Zhou under GPL-3.0 license");
 
   const AppInformation(this.value);
