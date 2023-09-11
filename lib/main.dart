@@ -24,6 +24,7 @@ import 'package:flutter_course_table/internal/prefs/initialize_shared_prefrences
 import 'package:flutter_course_table/internal/prefs/shared_preferences_repository.dart';
 import 'package:flutter_course_table/pages/data.dart';
 import 'package:flutter_course_table/pages/home_page/home_page.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 final courseTableRepository = getIt<CourseTableRepository>();
@@ -31,6 +32,7 @@ final prefsRepository = getIt<SharedPreferencesRepository>();
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final packageInfo = await PackageInfo.fromPlatform();
   await initializeDatabase();
   await initializeSharedPreferences();
   configureDependencies();
@@ -41,9 +43,9 @@ Future main() async {
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (context) => AppSettingData()),
     ChangeNotifierProvider(
-      create: (BuildContext context) =>
-          CourseTableData(courseTableNames, courseTable),
+      create: (context) => CourseTableData(courseTableNames, courseTable),
     ),
+    Provider(create: (context) => AppInfoData(packageInfo)),
   ], child: const CourseTableApp()));
 }
 
