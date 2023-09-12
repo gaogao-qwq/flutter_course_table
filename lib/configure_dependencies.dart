@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:get_it/get_it.dart';
+import 'package:github/github.dart';
 import 'package:injectable/injectable.dart';
 
 import 'configure_dependencies.config.dart';
@@ -24,4 +25,9 @@ final getIt = GetIt.instance;
 @injectableInit
 void configureDependencies() {
   getIt.init();
+}
+
+void initializeGitHub() {
+  final github = GitHub();
+  getIt.registerSingleton(github);
 }
