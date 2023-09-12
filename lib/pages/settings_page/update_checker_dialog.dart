@@ -16,10 +16,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/pages/data.dart';
+import 'package:flutter_course_table/utils/show_info_dialog.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:github/github.dart';
 import 'package:provider/provider.dart';
 import 'package:pub_semver/pub_semver.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class UpdateCheckerDialog extends StatefulWidget {
   final Release latestRelease;
@@ -76,7 +78,7 @@ class _UpdateCheckerDialogState extends State<UpdateCheckerDialog> {
               Text("最新版本：${widget.latestRelease.tagName}"),
               const Padding(padding: EdgeInsets.all(6)),
               SizedBox(
-                height: 400,
+                height: 200,
                 width: 300,
                 child: Markdown(
                   data: widget.latestRelease.body ?? "",
@@ -93,7 +95,13 @@ class _UpdateCheckerDialogState extends State<UpdateCheckerDialog> {
                     child: const Text("返回"),
                   ),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      if (!await launchUrl(
+                          Uri.parse(widget.latestRelease.htmlUrl ?? ""))) {
+                        if (!mounted) return;
+                        showInfoDialog(context, "Oops", "无法打开链接");
+                      }
+                    },
                     child: const Text("前往下载更新"),
                   ),
                 ],
