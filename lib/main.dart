@@ -35,6 +35,7 @@ Future main() async {
   final packageInfo = await PackageInfo.fromPlatform();
   await initializeDatabase();
   await initializeSharedPreferences();
+  initializeGitHub();
   configureDependencies();
   final courseTableNames = await courseTableRepository.getCourseTableNames();
   final currCourseTableName = prefsRepository.getCurrentCourseTableName();
