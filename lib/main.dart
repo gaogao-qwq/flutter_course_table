@@ -19,8 +19,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/configure_dependencies.dart';
 import 'package:flutter_course_table/internal/database/course_table_repository.dart';
-import 'package:flutter_course_table/internal/database/initialize_database.dart';
-import 'package:flutter_course_table/internal/prefs/initialize_shared_prefrences.dart';
 import 'package:flutter_course_table/internal/prefs/shared_preferences_repository.dart';
 import 'package:flutter_course_table/pages/data.dart';
 import 'package:flutter_course_table/pages/home_page/home_page.dart';
@@ -33,10 +31,7 @@ final prefsRepository = getIt<SharedPreferencesRepository>();
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final packageInfo = await PackageInfo.fromPlatform();
-  await initializeDatabase();
-  await initializeSharedPreferences();
-  initializeGitHub();
-  configureDependencies();
+  await init();
   final courseTableNames = await courseTableRepository.getCourseTableNames();
   final currCourseTableName = prefsRepository.getCurrentCourseTableName();
   final courseTable =
