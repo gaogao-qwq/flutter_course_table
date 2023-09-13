@@ -48,6 +48,7 @@ class _DeveloperPageState extends State<DeveloperPage> {
                       context: context,
                       builder: (context) =>
                           const CrawlerApiSelectorDialog(title: "请先设置爬虫服务地址"));
+                  return;
                 }
                 showDialog(
                     context: context,
