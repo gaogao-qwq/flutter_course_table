@@ -43,11 +43,10 @@ const List<NavigationDestination> appBarDestinations = [
   ),
 ];
 
-enum ScreenSelected {
-  courseTable(0),
-  import(1),
-  settings(2);
+enum MainPage {
+  courseTable(),
+  import(),
+  settings();
 
-  const ScreenSelected(this.value);
-  final int value;
+  const MainPage();
 }

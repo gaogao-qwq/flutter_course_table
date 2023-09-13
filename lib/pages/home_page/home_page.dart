@@ -17,6 +17,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table/animations/offset_animation.dart';
+import 'package:flutter_course_table/animations/size_animation.dart';
 import 'package:flutter_course_table/configure_dependencies.dart';
 import 'package:flutter_course_table/constants.dart';
 import 'package:flutter_course_table/internal/prefs/shared_preferences_repository.dart';
@@ -45,169 +47,151 @@ final List<NavigationRailDestination> navRailDestinations = appBarDestinations
     )
     .toList();
 
-class CourseTableHomePage extends StatefulWidget {
-  const CourseTableHomePage({super.key});
+class NavigationTransition extends StatefulWidget {
+  const NavigationTransition({super.key, required this.showLargeSizeLayout});
+
+  final bool showLargeSizeLayout;
 
   @override
-  State<CourseTableHomePage> createState() => _CourseTableHomePageState();
+  State<NavigationTransition> createState() => _NavigationTransitionState();
 }
 
-class _CourseTableHomePageState extends State<CourseTableHomePage>
+class _NavigationTransitionState extends State<NavigationTransition>
     with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-  late final AnimationController controller;
+  late final AnimationController _controller;
   late final CurvedAnimation railAnimation;
   late final ReverseAnimation barAnimation;
-  bool controllerInitialized = false;
-  bool showLargeSizeLayout = false;
-  int screenIndex = ScreenSelected.courseTable.value;
+  late final ReverseAnimation pageAnimation;
   late PageController pageController;
+
+  int screenIndex = MainPage.courseTable.index;
+  bool _isPageVisible = true;
+  late bool showLargeSizeLayout;
 
   @override
   void initState() {
     super.initState();
-    controller = AnimationController(
+    showLargeSizeLayout = widget.showLargeSizeLayout;
+    _controller = AnimationController(
       duration: Duration(milliseconds: transitionLength.toInt() * 2),
       vsync: this,
     );
+    barAnimation = ReverseAnimation(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.5),
+      ),
+    );
     railAnimation = CurvedAnimation(
-      parent: controller,
+      parent: _controller,
       curve: const Interval(0.5, 1.0),
     );
   }
 
   @override
-  void dispose() {
-    controller.dispose();
-    pageController.dispose();
-    super.dispose();
-  }
-
-  @override
   void didChangeDependencies() {
-    super.didChangeDependencies();
     final double width = MediaQuery.of(context).size.width;
-    final AnimationStatus status = controller.status;
+    final AnimationStatus status = _controller.status;
     if (width > largeWidthBreakpoint) {
       showLargeSizeLayout = true;
       if (status != AnimationStatus.forward &&
           status != AnimationStatus.completed) {
-        controller.forward();
+        _controller.forward();
       }
     } else {
       showLargeSizeLayout = false;
       if (status != AnimationStatus.reverse &&
           status != AnimationStatus.dismissed) {
-        controller.reverse();
+        _controller.reverse();
       }
     }
-    if (!controllerInitialized) {
-      controllerInitialized = true;
-      controller.value = width > largeWidthBreakpoint ? 1 : 0;
-    }
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    pageController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final currWeek = context.select((CourseTableData data) => data.currWeek);
+    pageController = PageController(initialPage: currWeek - 1);
     final courseTableNames =
         context.select((CourseTableData data) => data.courseTableNames);
     final courseTable =
         context.select((CourseTableData data) => data.courseTable);
-    final currWeek = context.select((CourseTableData data) => data.currWeek);
-    pageController = PageController(initialPage: currWeek - 1);
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return AnimatedBuilder(
-      animation: controller,
+      animation: _controller,
       builder: (context, child) {
-        return NavigationTransition(
-          scaffoldKey: scaffoldKey,
-          animationController: controller,
-          gestureDetector: GestureDetector(),
-          railAnimation: railAnimation,
+        return Scaffold(
+          key: scaffoldKey,
           appBar: createAppBar(courseTableNames),
-          body:
-              createScreenFor(ScreenSelected.values[screenIndex], courseTable),
-          navigationRail: NavigationRail(
-            extended: true,
-            destinations: navRailDestinations,
-            selectedIndex: screenIndex,
-            onDestinationSelected: (index) {
-              setState(() {
-                handleScreenChanged(index);
-              });
-            },
-            trailing: const Expanded(
-              child: Padding(
-                  padding: EdgeInsets.only(bottom: 20),
-                  child: ExpandedTrailingActions()),
-            ),
+          body: Row(
+            children: [
+              RailTransition(
+                animation: railAnimation,
+                backgroundColor: colorScheme.surface,
+                child: NavigationRail(
+                  extended: true,
+                  destinations: navRailDestinations,
+                  selectedIndex: screenIndex,
+                  onDestinationSelected: (index) {
+                    setState(() {
+                      changePageTo(MainPage.values[index]);
+                    });
+                  },
+                  trailing: const Expanded(
+                    child: Padding(
+                        padding: EdgeInsets.only(bottom: 20),
+                        child: ExpandedTrailingActions()),
+                  ),
+                ),
+              ),
+              createScreenFor(MainPage.values[screenIndex], courseTable)
+            ],
           ),
-          navigationBar: NavigationBars(
-            onSelectItem: (index) {
-              setState(() {
-                screenIndex = index;
-                handleScreenChanged(screenIndex);
-              });
-            },
-            selectedIndex: screenIndex,
+          bottomNavigationBar: BarTransition(
+            animation: barAnimation,
+            backgroundColor: colorScheme.surface,
+            child: NavigationBars(
+              onSelectItem: (index) {
+                setState(() {
+                  changePageTo(MainPage.values[index]);
+                });
+              },
+              selectedIndex: screenIndex,
+            ),
           ),
         );
       },
     );
   }
 
-  void handleScreenChanged(int screenSelected) {
-    setState(() {
-      screenIndex = screenSelected;
-    });
+  Widget menu() {
+    return Container(
+      alignment: Alignment.bottomLeft,
+      child: FittedBox(
+        child: Row(
+          children: [
+            CourseTableMenu(pageController: pageController),
+            const Padding(padding: EdgeInsets.only(left: 10)),
+            WeekMenu(pageController: pageController),
+          ],
+        ),
+      ),
+    );
   }
 
-  Widget createScreenFor(
-      ScreenSelected screenSelected, CourseTable? courseTable) {
-    switch (screenSelected) {
-      case ScreenSelected.courseTable:
-        return courseTable == null
-            ? Expanded(
-                child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  const Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Text("未选择或未导入课表，请先选择或导入课表"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      handleScreenChanged(ScreenSelected.import.value);
-                    },
-                    child: const Text("导入"),
-                  ),
-                ],
-              ))
-            : CourseTableWidget(pageController: pageController);
-      case ScreenSelected.import:
-        return const ImportTablePage();
-      case ScreenSelected.settings:
-        return const SettingsPage();
-      default:
-        return Expanded(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            const Padding(
-              padding: EdgeInsets.all(10),
-              child: Text("未选择或未导入课表，请先选择或导入课表"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                handleScreenChanged(ScreenSelected.import.value);
-              },
-              child: const Text("导入"),
-            ),
-          ],
-        ));
-    }
+  void changePageTo(MainPage page) {
+    setState(() {
+      screenIndex = page.index;
+      _isPageVisible = !_isPageVisible;
+    });
   }
 
   PreferredSizeWidget createAppBar(List<String> courseTableNames) {
@@ -239,19 +223,51 @@ class _CourseTableHomePageState extends State<CourseTableHomePage>
             (showLargeSizeLayout) ? [Container()] : [const BrightnessButton()]);
   }
 
-  Widget menu() {
-    return Container(
-      alignment: Alignment.bottomLeft,
-      child: FittedBox(
-        child: Row(
-          children: [
-            CourseTableMenu(pageController: pageController),
-            const Padding(padding: EdgeInsets.only(left: 10)),
-            WeekMenu(pageController: pageController),
+  Widget createScreenFor(MainPage screenSelected, CourseTable? courseTable) {
+    switch (screenSelected) {
+      case MainPage.courseTable:
+        return courseTable == null
+            ? Expanded(
+                child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  const Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Text("未选择或未导入课表，请先选择或导入课表"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      changePageTo(MainPage.import);
+                    },
+                    child: const Text("导入"),
+                  ),
+                ],
+              ))
+            : CourseTableWidget(pageController: pageController);
+      case MainPage.import:
+        return const ImportTablePage();
+      case MainPage.settings:
+        return const SettingsPage();
+      default:
+        return Expanded(
+            child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            const Padding(
+              padding: EdgeInsets.all(10),
+              child: Text("未选择或未导入课表，请先选择或导入课表"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                changePageTo(MainPage.import);
+              },
+              child: const Text("导入"),
+            ),
           ],
-        ),
-      ),
-    );
+        ));
+    }
   }
 }
 
@@ -301,113 +317,6 @@ class _NavigationBarsState extends State<NavigationBars> {
       ),
     );
   }
-}
-
-class NavigationTransition extends StatefulWidget {
-  const NavigationTransition(
-      {super.key,
-      required this.scaffoldKey,
-      required this.animationController,
-      required this.gestureDetector,
-      required this.railAnimation,
-      required this.navigationRail,
-      required this.navigationBar,
-      required this.appBar,
-      required this.body});
-
-  final GlobalKey<ScaffoldState> scaffoldKey;
-  final AnimationController animationController;
-  final GestureDetector gestureDetector;
-  final CurvedAnimation railAnimation;
-  final Widget navigationRail;
-  final Widget navigationBar;
-  final PreferredSizeWidget appBar;
-  final Widget body;
-
-  @override
-  State<NavigationTransition> createState() => _NavigationTransitionState();
-}
-
-class _NavigationTransitionState extends State<NavigationTransition> {
-  late final AnimationController controller;
-  late final CurvedAnimation railAnimation;
-  late final ReverseAnimation barAnimation;
-  bool controllerInitialized = false;
-  bool showDivider = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    controller = widget.animationController;
-    railAnimation = widget.railAnimation;
-
-    barAnimation = ReverseAnimation(
-      CurvedAnimation(
-        parent: controller,
-        curve: const Interval(0.0, 0.5),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
-    return Scaffold(
-      key: widget.scaffoldKey,
-      appBar: widget.appBar,
-      body: Row(
-        children: [
-          RailTransition(
-            animation: railAnimation,
-            backgroundColor: colorScheme.surface,
-            child: widget.navigationRail,
-          ),
-          widget.body,
-        ],
-      ),
-      bottomNavigationBar: BarTransition(
-        animation: barAnimation,
-        backgroundColor: colorScheme.surface,
-        child: widget.navigationBar,
-      ),
-    );
-  }
-}
-
-class SizeAnimation extends CurvedAnimation {
-  SizeAnimation(Animation<double> parent)
-      : super(
-          parent: parent,
-          curve: const Interval(
-            0.2,
-            0.8,
-            curve: Curves.easeInOutCubicEmphasized,
-          ),
-          reverseCurve: Interval(
-            0,
-            0.2,
-            curve: Curves.easeInOutCubicEmphasized.flipped,
-          ),
-        );
-}
-
-class OffsetAnimation extends CurvedAnimation {
-  OffsetAnimation(Animation<double> parent)
-      : super(
-          parent: parent,
-          curve: const Interval(
-            0.4,
-            1.0,
-            curve: Curves.easeInOutCubicEmphasized,
-          ),
-          reverseCurve: Interval(
-            0,
-            0.2,
-            curve: Curves.easeInOutCubicEmphasized.flipped,
-          ),
-        );
 }
 
 class RailTransition extends StatefulWidget {
