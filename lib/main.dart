@@ -18,6 +18,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/configure_dependencies.dart';
+import 'package:flutter_course_table/constants.dart';
 import 'package:flutter_course_table/internal/database/course_table_repository.dart';
 import 'package:flutter_course_table/internal/prefs/shared_preferences_repository.dart';
 import 'package:flutter_course_table/pages/data.dart';
@@ -53,9 +54,12 @@ class CourseTableApp extends StatefulWidget {
 }
 
 class _CourseTableAppState extends State<CourseTableApp> {
+  late bool showLargeSizeLayout;
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    showLargeSizeLayout =
+        MediaQuery.of(context).size.width > largeWidthBreakpoint ? true : false;
+    super.didChangeDependencies();
   }
 
   @override
@@ -76,7 +80,7 @@ class _CourseTableAppState extends State<CourseTableApp> {
         useMaterial3: true,
         brightness: Brightness.dark,
       ),
-      home: const CourseTableHomePage(),
+      home: NavigationTransition(showLargeSizeLayout: showLargeSizeLayout),
     );
   }
 }
