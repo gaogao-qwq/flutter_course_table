@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table/animations/fade_animation.dart';
 import 'package:flutter_course_table/internal/types/semester_info.dart';
 
 class SelectSemesterDialog extends StatefulWidget {
@@ -29,13 +30,20 @@ class SelectSemesterDialog extends StatefulWidget {
   State<SelectSemesterDialog> createState() => _SelectSemesterDialogState();
 }
 
-class _SelectSemesterDialogState extends State<SelectSemesterDialog> {
+class _SelectSemesterDialogState extends State<SelectSemesterDialog>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
   late int selectedYearIndex;
   late String selectedSemester;
   late String selectedYear;
 
   @override
   void initState() {
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+      reverseDuration: const Duration(milliseconds: 200),
+    );
     selectedYearIndex = widget.semesterList.length - 1;
     selectedSemester = widget.semesterList[selectedYearIndex].semesterId1;
     selectedYear = widget.semesterList[selectedYearIndex].value;
@@ -43,62 +51,80 @@ class _SelectSemesterDialogState extends State<SelectSemesterDialog> {
   }
 
   @override
+  void didChangeDependencies() {
+    if (_controller.status != AnimationStatus.forward) {
+      _controller.forward();
+    }
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    _controller.reverse();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SimpleDialog(
-      title: const Text("选择学期"),
-      children: <Widget>[
-        Column(
+    return FadeTransition(
+        opacity: FadeAnimation(_controller),
+        child: SimpleDialog(
+          title: const Text("选择学期"),
           children: <Widget>[
             Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                DropdownButton(
-                  icon: const Icon(Icons.arrow_downward),
-                  elevation: 16,
-                  borderRadius: const BorderRadius.all(Radius.circular(4)),
-                  items: getYearItems(),
-                  value: selectedYearIndex.toString(),
-                  onChanged: (value) {
-                    int? year = int.parse(value ?? "-1");
-                    setState(() {
-                      selectedYearIndex = year == -1 ? selectedYearIndex : year;
-                    });
-                    selectedSemester =
-                        widget.semesterList[selectedYearIndex].semesterId1;
-                  },
-                ),
-                DropdownButton(
-                  icon: const Icon(Icons.arrow_downward),
-                  elevation: 16,
-                  borderRadius: const BorderRadius.all(Radius.circular(4)),
-                  items: getSemesterItems(),
-                  value: selectedSemester,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedSemester = value ?? "";
-                    });
-                  },
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context, {
-                      'selectedSemester': selectedSemester,
-                      'selectedYear': selectedYear
-                    });
-                  },
-                  style: const ButtonStyle(
-                    backgroundColor:
-                        MaterialStatePropertyAll<Color>(Colors.green),
-                  ),
-                  child: const Text("Import"),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    DropdownButton(
+                      icon: const Icon(Icons.arrow_downward),
+                      elevation: 16,
+                      borderRadius: const BorderRadius.all(Radius.circular(4)),
+                      items: getYearItems(),
+                      value: selectedYearIndex.toString(),
+                      onChanged: (value) {
+                        int? year = int.parse(value ?? "-1");
+                        setState(() {
+                          selectedYearIndex =
+                              year == -1 ? selectedYearIndex : year;
+                        });
+                        selectedSemester =
+                            widget.semesterList[selectedYearIndex].semesterId1;
+                      },
+                    ),
+                    DropdownButton(
+                      icon: const Icon(Icons.arrow_downward),
+                      elevation: 16,
+                      borderRadius: const BorderRadius.all(Radius.circular(4)),
+                      items: getSemesterItems(),
+                      value: selectedSemester,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedSemester = value ?? "";
+                        });
+                      },
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context, {
+                          'selectedSemester': selectedSemester,
+                          'selectedYear': selectedYear
+                        });
+                      },
+                      style: const ButtonStyle(
+                        backgroundColor:
+                            MaterialStatePropertyAll<Color>(Colors.green),
+                      ),
+                      child: const Text("Import"),
+                    ),
+                  ],
                 ),
               ],
             ),
           ],
-        ),
-      ],
-    );
+        ));
   }
 
   List<DropdownMenuItem<String>> getYearItems() {

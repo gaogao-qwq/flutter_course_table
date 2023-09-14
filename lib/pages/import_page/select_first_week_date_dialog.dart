@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table/animations/fade_animation.dart';
 
 class FirstWeekDateSelector extends StatefulWidget {
   final String selectedYear;
@@ -28,13 +29,19 @@ class FirstWeekDateSelector extends StatefulWidget {
   State<FirstWeekDateSelector> createState() => _FirstWeekDateSelectorState();
 }
 
-class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
+class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
   late int currYear;
   late DateTime currWeek;
 
   @override
   void initState() {
-    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+      reverseDuration: const Duration(milliseconds: 200),
+    );
     final yearString =
         widget.selectedYear.substring(0, widget.selectedYear.indexOf('-'));
     currYear = int.parse(yearString);
@@ -42,69 +49,87 @@ class _FirstWeekDateSelectorState extends State<FirstWeekDateSelector> {
     while (currWeek.weekday != DateTime.monday) {
       currWeek = currWeek.add(const Duration(days: 1));
     }
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (_controller.status != AnimationStatus.forward) {
+      _controller.forward();
+    }
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    _controller.reverse();
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SimpleDialog(
-      title: const Text('选择学期第一周日期'),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          child: DropdownButton(
-            icon: const Icon(Icons.arrow_downward),
-            elevation: 16,
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-            value: currYear,
-            items: getYearItems(),
-            onChanged: (value) {
-              setState(() {
-                currYear = value ?? currYear;
-                currWeek = DateTime(currYear, DateTime.august, 1);
-                while (currWeek.weekday != DateTime.monday) {
-                  currWeek = currWeek.add(const Duration(days: 1));
-                }
-              });
-            },
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.all(16),
-          child: DropdownButton(
-            icon: const Icon(Icons.arrow_downward),
-            elevation: 16,
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-            value: currWeek,
-            items: getWeekItems(currYear),
-            onChanged: (value) {
-              setState(() {
-                currWeek = value ?? currWeek;
-              });
-            },
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.all(8),
-          child: Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Back"),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context, currWeek.toIso8601String());
-                  },
-                  child: const Text("Select"),
-                ),
-              ]),
-        ),
-      ],
-    );
+    return FadeTransition(
+        opacity: FadeAnimation(_controller),
+        child: SimpleDialog(
+          title: const Text('选择学期第一周日期'),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: DropdownButton(
+                icon: const Icon(Icons.arrow_downward),
+                elevation: 16,
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                value: currYear,
+                items: getYearItems(),
+                onChanged: (value) {
+                  setState(() {
+                    currYear = value ?? currYear;
+                    currWeek = DateTime(currYear, DateTime.august, 1);
+                    while (currWeek.weekday != DateTime.monday) {
+                      currWeek = currWeek.add(const Duration(days: 1));
+                    }
+                  });
+                },
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: DropdownButton(
+                icon: const Icon(Icons.arrow_downward),
+                elevation: 16,
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                value: currWeek,
+                items: getWeekItems(currYear),
+                onChanged: (value) {
+                  setState(() {
+                    currWeek = value ?? currWeek;
+                  });
+                },
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text("Back"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context, currWeek.toIso8601String());
+                      },
+                      child: const Text("Select"),
+                    ),
+                  ]),
+            ),
+          ],
+        ));
   }
 
   List<DropdownMenuItem<int>> getYearItems() {

@@ -18,6 +18,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table/animations/fade_animation.dart';
 import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
 import 'package:flutter_course_table/internal/utils/course_table_xlsx_handlers.dart';
 import 'package:flutter_course_table/pages/data.dart';
@@ -35,7 +36,35 @@ class ExportCourseTableToXlsxDialog extends StatefulWidget {
 }
 
 class _ExportCourseTableToXlsxDialogState
-    extends State<ExportCourseTableToXlsxDialog> {
+    extends State<ExportCourseTableToXlsxDialog>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+      reverseDuration: const Duration(milliseconds: 200),
+    );
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (_controller.status != AnimationStatus.forward) {
+      _controller.forward();
+    }
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    _controller.reverse();
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     String selectedCourseTableName = "";
@@ -47,94 +76,97 @@ class _ExportCourseTableToXlsxDialogState
         (index) => DropdownMenuEntry(
             value: courseTableNames[index], label: courseTableNames[index]));
 
-    return SimpleDialog(
-      title: const Text("导出选中的课表"),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                FittedBox(
-                  clipBehavior: Clip.antiAlias,
-                  child: DropdownMenu(
-                    label: const Text("导出课表"),
-                    leadingIcon: const Icon(Icons.save),
-                    initialSelection: currCourseTableName,
-                    dropdownMenuEntries: entries,
-                    onSelected: (value) {
-                      selectedCourseTableName = value ?? "";
-                    },
-                  ),
-                ),
-                const Divider(),
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
+    return FadeTransition(
+        opacity: FadeAnimation(_controller),
+        child: SimpleDialog(
+          title: const Text("导出选中的课表"),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    FittedBox(
+                      clipBehavior: Clip.antiAlias,
+                      child: DropdownMenu(
+                        label: const Text("导出课表"),
+                        leadingIcon: const Icon(Icons.save),
+                        initialSelection: currCourseTableName,
+                        dropdownMenuEntries: entries,
+                        onSelected: (value) {
+                          selectedCourseTableName = value ?? "";
                         },
-                        child: const Text("返回"),
                       ),
-                      ElevatedButton(
-                        onPressed: () async {
-                          final courseTable = jsonToCourseTable(
-                              await courseTableRepository
-                                  .getCourseTableJsonByName(
-                                      selectedCourseTableName));
-                          if (courseTable == null) return;
+                    ),
+                    const Divider(),
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text("返回"),
+                          ),
+                          ElevatedButton(
+                            onPressed: () async {
+                              final courseTable = jsonToCourseTable(
+                                  await courseTableRepository
+                                      .getCourseTableJsonByName(
+                                          selectedCourseTableName));
+                              if (courseTable == null) return;
 
-                          final excel = await courseTableToXlsx(courseTable);
-                          if (excel == null) return;
+                              final excel =
+                                  await courseTableToXlsx(courseTable);
+                              if (excel == null) return;
 
-                          String? selectedDirectory;
-                          try {
-                            selectedDirectory =
-                                await FilePicker.platform.getDirectoryPath(
-                              dialogTitle: "选择导出路径",
-                              lockParentWindow: true,
-                              initialDirectory:
-                                  (await getApplicationDocumentsDirectory())
-                                      .path,
-                            );
-                          } catch (e) {
-                            if (!mounted) return;
-                            showInfoDialog(context, "Oops", "报错了：$e");
-                            return;
-                          }
+                              String? selectedDirectory;
+                              try {
+                                selectedDirectory =
+                                    await FilePicker.platform.getDirectoryPath(
+                                  dialogTitle: "选择导出路径",
+                                  lockParentWindow: true,
+                                  initialDirectory:
+                                      (await getApplicationDocumentsDirectory())
+                                          .path,
+                                );
+                              } catch (e) {
+                                if (!mounted) return;
+                                showInfoDialog(context, "Oops", "报错了：$e");
+                                return;
+                              }
 
-                          if (selectedDirectory == null ||
-                              selectedDirectory.isEmpty) {
-                            if (!mounted) return;
-                            showInfoDialog(context, "Oops", "文件路径为空");
-                            return;
-                          }
+                              if (selectedDirectory == null ||
+                                  selectedDirectory.isEmpty) {
+                                if (!mounted) return;
+                                showInfoDialog(context, "Oops", "文件路径为空");
+                                return;
+                              }
 
-                          var fileBytes = excel.save();
-                          if (fileBytes == null) {
-                            if (!mounted) return;
-                            showInfoDialog(context, "Oops", "导出了空表，很神秘");
-                            return;
-                          }
+                              var fileBytes = excel.save();
+                              if (fileBytes == null) {
+                                if (!mounted) return;
+                                showInfoDialog(context, "Oops", "导出了空表，很神秘");
+                                return;
+                              }
 
-                          File(join(selectedDirectory,
-                              "$selectedCourseTableName.xlsx"))
-                            ..createSync(recursive: true)
-                            ..writeAsBytesSync(fileBytes);
+                              File(join(selectedDirectory,
+                                  "$selectedCourseTableName.xlsx"))
+                                ..createSync(recursive: true)
+                                ..writeAsBytesSync(fileBytes);
 
-                          if (!mounted) return;
-                          Navigator.pop(context);
-                          showInfoDialog(context, "喜报", "导出成功");
-                        },
-                        child: const Text("导出"),
-                      ),
-                    ]),
-              ]),
-        )
-      ],
-    );
+                              if (!mounted) return;
+                              Navigator.pop(context);
+                              showInfoDialog(context, "喜报", "导出成功");
+                            },
+                            child: const Text("导出"),
+                          ),
+                        ]),
+                  ]),
+            )
+          ],
+        ));
   }
 }
