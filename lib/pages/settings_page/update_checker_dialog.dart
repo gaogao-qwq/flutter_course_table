@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table/animations/fade_animation.dart';
 import 'package:flutter_course_table/pages/data.dart';
 import 'package:flutter_course_table/utils/show_info_dialog.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -31,7 +32,35 @@ class UpdateCheckerDialog extends StatefulWidget {
   State<UpdateCheckerDialog> createState() => _UpdateCheckerDialogState();
 }
 
-class _UpdateCheckerDialogState extends State<UpdateCheckerDialog> {
+class _UpdateCheckerDialogState extends State<UpdateCheckerDialog>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+      reverseDuration: const Duration(milliseconds: 200),
+    );
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (_controller.status != AnimationStatus.forward) {
+      _controller.forward();
+    }
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    _controller.reverse();
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final appInfoData = context.watch<AppInfoData>();
@@ -40,76 +69,80 @@ class _UpdateCheckerDialogState extends State<UpdateCheckerDialog> {
     Version currentVersion = Version.parse(appInfoData.version);
 
     if (currentVersion >= latestVersion) {
-      return SimpleDialog(
-        title: const Text("检查更新"),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Text("当前已是最新版本"),
-                const Padding(padding: EdgeInsets.all(2)),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("返回"),
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    }
-
-    return SimpleDialog(
-      title: const Text("检查更新"),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
+      return FadeTransition(
+          opacity: FadeAnimation(_controller),
+          child: SimpleDialog(
+            title: const Text("检查更新"),
             children: [
-              Text("当前版本：${appInfoData.version}"),
-              const Padding(padding: EdgeInsets.all(2)),
-              Text("最新版本：${widget.latestRelease.tagName}"),
-              const Padding(padding: EdgeInsets.all(6)),
-              SizedBox(
-                height: 200,
-                width: 300,
-                child: Markdown(
-                  data: widget.latestRelease.body ?? "",
+              Container(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text("当前已是最新版本"),
+                    const Padding(padding: EdgeInsets.all(2)),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text("返回"),
+                    ),
+                  ],
                 ),
               ),
-              const Padding(padding: EdgeInsets.all(6)),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text("返回"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (!await launchUrl(
-                          Uri.parse(widget.latestRelease.htmlUrl ?? ""))) {
-                        if (!mounted) return;
-                        showInfoDialog(context, "Oops", "无法打开链接");
-                      }
-                    },
-                    child: const Text("前往下载更新"),
-                  ),
-                ],
-              )
             ],
-          ),
-        )
-      ],
-    );
+          ));
+    }
+
+    return FadeTransition(
+        opacity: FadeAnimation(_controller),
+        child: SimpleDialog(
+          title: const Text("检查更新"),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text("当前版本：${appInfoData.version}"),
+                  const Padding(padding: EdgeInsets.all(2)),
+                  Text("最新版本：${widget.latestRelease.tagName}"),
+                  const Padding(padding: EdgeInsets.all(6)),
+                  SizedBox(
+                    height: 200,
+                    width: 300,
+                    child: Markdown(
+                      data: widget.latestRelease.body ?? "",
+                    ),
+                  ),
+                  const Padding(padding: EdgeInsets.all(6)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text("返回"),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (!await launchUrl(
+                              Uri.parse(widget.latestRelease.htmlUrl ?? ""))) {
+                            if (!mounted) return;
+                            showInfoDialog(context, "Oops", "无法打开链接");
+                          }
+                        },
+                        child: const Text("前往下载更新"),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            )
+          ],
+        ));
   }
 }

@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table/animations/fade_animation.dart';
 import 'package:flutter_course_table/internal/handlers/response_handlers.dart';
 import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
 import 'package:flutter_course_table/pages/data.dart';
@@ -53,7 +54,7 @@ class _DeveloperPageState extends State<DeveloperPage> {
                 showDialog(
                     context: context,
                     builder: (context) =>
-                        const ImportTestTable(initName: "Debug"));
+                        const ImportTestTableDialog(initName: "Debug"));
               },
             )
           ],
@@ -63,17 +64,44 @@ class _DeveloperPageState extends State<DeveloperPage> {
   }
 }
 
-class ImportTestTable extends StatefulWidget {
+class ImportTestTableDialog extends StatefulWidget {
   final String initName;
 
-  const ImportTestTable({super.key, required this.initName});
+  const ImportTestTableDialog({super.key, required this.initName});
 
   @override
-  State<ImportTestTable> createState() => _ImportTestTableState();
+  State<ImportTestTableDialog> createState() => _ImportTestTableDialogState();
 }
 
-class _ImportTestTableState extends State<ImportTestTable> {
+class _ImportTestTableDialogState extends State<ImportTestTableDialog>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+      reverseDuration: const Duration(milliseconds: 200),
+    );
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (_controller.status != AnimationStatus.forward) {
+      _controller.forward();
+    }
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    _controller.reverse();
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,79 +111,83 @@ class _ImportTestTableState extends State<ImportTestTable> {
     bool isNameUsed =
         courseTableData.courseTableNames.contains(name) ? true : false;
 
-    return SimpleDialog(
-      title: const Text("为课表命名"),
-      children: <Widget>[
-        Container(
-          padding: const EdgeInsets.all(64),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: <Widget>[
-                TextFormField(
-                  autofocus: true,
-                  initialValue: widget.initName,
-                  maxLength: 50,
-                  onChanged: (text) {
-                    name = text;
-                    isNameUsed = courseTableData.courseTableNames.contains(name)
-                        ? true
-                        : false;
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return "课表名不能为空";
-                    if (isNameUsed) return "该课表名已被占用";
-                    return null;
-                  },
-                  decoration: const InputDecoration(
-                    icon: Icon(Icons.note_alt_rounded),
-                    border: UnderlineInputBorder(),
-                    labelText: "输入课表名",
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Text("取消"),
-                          )),
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            if (!_formKey.currentState!.validate()) return;
-                            DateTime date = DateTime.now();
-                            while (date.day != DateTime.monday) {
-                              date = date.add(const Duration(days: 1));
-                            }
-                            final courseTable = await fetchTestCourseTable(
-                                date.toIso8601String(),
-                                name,
-                                appSettingData.crawlerApiUrl);
-                            final jsonString = courseTableToJson(courseTable!);
-                            if (!mounted) return;
-                            courseTableData.add(name, jsonString);
-                            Navigator.pop(context);
-                          },
-                          child: const Text("保存"),
-                        ),
+    return FadeTransition(
+        opacity: FadeAnimation(_controller),
+        child: SimpleDialog(
+          title: const Text("为课表命名"),
+          children: <Widget>[
+            Container(
+              padding: const EdgeInsets.all(64),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: <Widget>[
+                    TextFormField(
+                      autofocus: true,
+                      initialValue: widget.initName,
+                      maxLength: 50,
+                      onChanged: (text) {
+                        name = text;
+                        isNameUsed =
+                            courseTableData.courseTableNames.contains(name)
+                                ? true
+                                : false;
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return "课表名不能为空";
+                        if (isNameUsed) return "该课表名已被占用";
+                        return null;
+                      },
+                      decoration: const InputDecoration(
+                        icon: Icon(Icons.note_alt_rounded),
+                        border: UnderlineInputBorder(),
+                        labelText: "输入课表名",
                       ),
-                    ],
-                  ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text("取消"),
+                              )),
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                if (!_formKey.currentState!.validate()) return;
+                                DateTime date = DateTime.now();
+                                while (date.day != DateTime.monday) {
+                                  date = date.add(const Duration(days: 1));
+                                }
+                                final courseTable = await fetchTestCourseTable(
+                                    date.toIso8601String(),
+                                    name,
+                                    appSettingData.crawlerApiUrl);
+                                final jsonString =
+                                    courseTableToJson(courseTable!);
+                                if (!mounted) return;
+                                courseTableData.add(name, jsonString);
+                                Navigator.pop(context);
+                              },
+                              child: const Text("保存"),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ],
-    );
+          ],
+        ));
   }
 }
