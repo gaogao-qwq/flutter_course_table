@@ -16,14 +16,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/animations/fade_page_route.dart';
+import 'package:flutter_course_table/componets/dialog/crawler_api_selector_dialog.dart';
+import 'package:flutter_course_table/componets/dialog/export_course_table_to_xlsx_dialog.dart';
+import 'package:flutter_course_table/componets/dialog/info_dialog.dart';
+import 'package:flutter_course_table/componets/dialog/update_checker_dialog.dart';
 import 'package:flutter_course_table/configure_dependencies.dart';
 import 'package:flutter_course_table/pages/data.dart';
-import 'package:flutter_course_table/pages/settings_page/crawler_api_selector_dialog.dart';
 import 'package:flutter_course_table/pages/settings_page/developer_page.dart';
-import 'package:flutter_course_table/pages/settings_page/export_course_table_to_xlsx_dialog.dart';
 import 'package:flutter_course_table/pages/settings_page/manage_course_table_widget.dart';
-import 'package:flutter_course_table/pages/settings_page/update_checker_dialog.dart';
-import 'package:flutter_course_table/utils/show_info_dialog.dart';
 import 'package:github/github.dart';
 import 'package:provider/provider.dart';
 

@@ -15,6 +15,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table/componets/dialog/info_dialog.dart';
+import 'package:flutter_course_table/componets/dialog/name_table_dialog.dart';
+import 'package:flutter_course_table/componets/dialog/select_first_week_date_dialog.dart';
+import 'package:flutter_course_table/componets/dialog/select_semester_dialog.dart';
 import 'package:flutter_course_table/configure_dependencies.dart';
 import 'package:flutter_course_table/internal/database/course_table_repository.dart';
 import 'package:flutter_course_table/internal/handlers/response_handlers.dart';
@@ -23,10 +27,6 @@ import 'package:flutter_course_table/internal/types/semester_info.dart';
 import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
 import 'package:flutter_course_table/pages/data.dart';
 import 'package:flutter_course_table/pages/import_page/loading_overlay.dart';
-import 'package:flutter_course_table/pages/import_page/name_table_dialog.dart';
-import 'package:flutter_course_table/pages/import_page/select_first_week_date_dialog.dart';
-import 'package:flutter_course_table/pages/import_page/select_semester_dialog.dart';
-import 'package:flutter_course_table/utils/show_info_dialog.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
 

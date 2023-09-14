@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_course_table/componets/dialog/course_info_dialog.dart';
 import 'package:flutter_course_table/constants.dart';
 import 'package:flutter_course_table/internal/types/course_info.dart';
 import 'package:flutter_course_table/pages/data.dart';
@@ -236,65 +237,5 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
       ));
     }
     return tableList;
-  }
-}
-
-class CourseInfoDialog extends StatefulWidget {
-  final String heroTag;
-  final String rawCourseInfo;
-  final String location;
-  final String courseId;
-  final int sectionBegin;
-  final int rowSpan;
-
-  const CourseInfoDialog(
-      {super.key,
-      required this.heroTag,
-      required this.rawCourseInfo,
-      required this.location,
-      required this.courseId,
-      required this.sectionBegin,
-      required this.rowSpan});
-
-  @override
-  State<CourseInfoDialog> createState() => _CourseInfoDialogState();
-}
-
-class _CourseInfoDialogState extends State<CourseInfoDialog> {
-  @override
-  Widget build(BuildContext context) {
-    return SimpleDialog(
-      children: [
-        Container(
-            padding: const EdgeInsets.all(8),
-            child: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop();
-                },
-                child: Table(
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  defaultColumnWidth: const IntrinsicColumnWidth(),
-                  children: [
-                    TableRow(children: [
-                      const Text("课程编号：", textAlign: TextAlign.right),
-                      Text(widget.courseId)
-                    ]),
-                    TableRow(children: [
-                      const Text("课程名称：", textAlign: TextAlign.right),
-                      Text(widget.rawCourseInfo)
-                    ]),
-                    TableRow(children: [
-                      const Text("上课教室：", textAlign: TextAlign.right),
-                      Text(widget.location)
-                    ]),
-                    TableRow(children: [
-                      const Text("课程节数：", textAlign: TextAlign.right),
-                      Text(
-                          "${widget.sectionBegin}-${widget.sectionBegin + widget.rowSpan - 1}")
-                    ]),
-                  ],
-                )))
-      ],
-    );
   }
 }

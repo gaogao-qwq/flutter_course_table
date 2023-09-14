@@ -16,10 +16,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/animations/fade_page_route.dart';
+import 'package:flutter_course_table/componets/dialog/crawler_api_selector_dialog.dart';
 import 'package:flutter_course_table/pages/data.dart';
 import 'package:flutter_course_table/pages/import_page/import_from_crawler.dart';
 import 'package:flutter_course_table/pages/import_page/import_from_editor.dart';
-import 'package:flutter_course_table/pages/settings_page/crawler_api_selector_dialog.dart';
 import 'package:provider/provider.dart';
 
 class ImportTablePage extends StatefulWidget {

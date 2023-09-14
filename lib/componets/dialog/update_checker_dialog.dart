@@ -16,8 +16,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/animations/fade_animation.dart';
+import 'package:flutter_course_table/componets/dialog/info_dialog.dart';
 import 'package:flutter_course_table/pages/data.dart';
-import 'package:flutter_course_table/utils/show_info_dialog.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:github/github.dart';
 import 'package:provider/provider.dart';

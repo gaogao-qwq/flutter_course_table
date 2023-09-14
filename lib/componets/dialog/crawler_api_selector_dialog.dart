@@ -16,10 +16,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/animations/fade_animation.dart';
+import 'package:flutter_course_table/componets/dialog/info_dialog.dart';
 import 'package:flutter_course_table/internal/handlers/response_handlers.dart';
 import 'package:flutter_course_table/internal/types/course_table.dart';
 import 'package:flutter_course_table/pages/data.dart';
-import 'package:flutter_course_table/utils/show_info_dialog.dart';
 import 'package:provider/provider.dart';
 
 class CrawlerApiSelectorDialog extends StatefulWidget {

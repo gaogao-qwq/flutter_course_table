@@ -16,10 +16,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/animations/fade_animation.dart';
+import 'package:flutter_course_table/componets/dialog/crawler_api_selector_dialog.dart';
 import 'package:flutter_course_table/internal/handlers/response_handlers.dart';
 import 'package:flutter_course_table/internal/utils/course_table_json_handlers.dart';
 import 'package:flutter_course_table/pages/data.dart';
-import 'package:flutter_course_table/pages/settings_page/crawler_api_selector_dialog.dart';
 import 'package:provider/provider.dart';
 
 class DeveloperPage extends StatefulWidget {
