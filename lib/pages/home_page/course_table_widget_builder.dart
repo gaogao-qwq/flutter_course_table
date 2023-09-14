@@ -126,68 +126,41 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
           row: row,
           column: column,
           rowSpan: rowSpan,
-          child: GestureDetector(
-            onTap: () {
-              Navigator.push(
-                  context,
-                  DialogRoute(
+          child: Hero(
+              tag: "courseInfoCard_$id",
+              child: GestureDetector(
+                onTap: () {
+                  showDialog(
                       context: context,
-                      builder: (context) => SimpleDialog(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                child: Table(
-                                  children: [
-                                    TableRow(children: [
-                                      const Text("课程编号：",
-                                          textAlign: TextAlign.right),
-                                      Text(courseId)
-                                    ]),
-                                    TableRow(children: [
-                                      const Text("课程名称：",
-                                          textAlign: TextAlign.right),
-                                      Text(rawCourseInfo)
-                                    ]),
-                                    TableRow(children: [
-                                      const Text("上课教室：",
-                                          textAlign: TextAlign.right),
-                                      Text(location)
-                                    ]),
-                                    TableRow(children: [
-                                      const Text("课程节数：",
-                                          textAlign: TextAlign.right),
-                                      Text(
-                                          "$sectionBegin-${sectionBegin + rowSpan - 1}")
-                                    ]),
-                                  ],
-                                ),
-                              )
-                            ],
-                          )));
-            },
-            child: Card(
-              margin: const EdgeInsets.all(2),
-              color: isBright
-                  ? colorScheme.background.withOpacity(0.8)
-                  : colorScheme.primary.withOpacity(0.35),
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Flexible(
-                        child: Text(courseInfo,
-                            style: const TextStyle(fontSize: 10))),
-                    const Divider(thickness: 2),
-                    Flexible(
-                        child: Text(location,
-                            style: const TextStyle(fontSize: 10))),
-                  ],
+                      builder: (context) => CourseInfoDialog(
+                            heroTag: "courseInfoCard_$id",
+                            rawCourseInfo: rawCourseInfo,
+                            location: location,
+                            courseId: courseId,
+                            sectionBegin: sectionBegin,
+                            rowSpan: rowSpan,
+                          ));
+                },
+                child: Card(
+                  margin: const EdgeInsets.all(1.5),
+                  color: isBright
+                      ? colorScheme.background.withOpacity(0.8)
+                      : colorScheme.primary.withOpacity(0.35),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Flexible(
+                          child: Text(courseInfo,
+                              style: const TextStyle(fontSize: 10))),
+                      const Divider(thickness: 2),
+                      Flexible(
+                          child: Text(location,
+                              style: const TextStyle(fontSize: 10)))
+                    ],
+                  ),
                 ),
-              ),
-            ),
-          ),
+              )),
         ));
       }
 
@@ -263,5 +236,65 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
       ));
     }
     return tableList;
+  }
+}
+
+class CourseInfoDialog extends StatefulWidget {
+  final String heroTag;
+  final String rawCourseInfo;
+  final String location;
+  final String courseId;
+  final int sectionBegin;
+  final int rowSpan;
+
+  const CourseInfoDialog(
+      {super.key,
+      required this.heroTag,
+      required this.rawCourseInfo,
+      required this.location,
+      required this.courseId,
+      required this.sectionBegin,
+      required this.rowSpan});
+
+  @override
+  State<CourseInfoDialog> createState() => _CourseInfoDialogState();
+}
+
+class _CourseInfoDialogState extends State<CourseInfoDialog> {
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      children: [
+        Container(
+            padding: const EdgeInsets.all(8),
+            child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+                child: Table(
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  defaultColumnWidth: const IntrinsicColumnWidth(),
+                  children: [
+                    TableRow(children: [
+                      const Text("课程编号：", textAlign: TextAlign.right),
+                      Text(widget.courseId)
+                    ]),
+                    TableRow(children: [
+                      const Text("课程名称：", textAlign: TextAlign.right),
+                      Text(widget.rawCourseInfo)
+                    ]),
+                    TableRow(children: [
+                      const Text("上课教室：", textAlign: TextAlign.right),
+                      Text(widget.location)
+                    ]),
+                    TableRow(children: [
+                      const Text("课程节数：", textAlign: TextAlign.right),
+                      Text(
+                          "${widget.sectionBegin}-${widget.sectionBegin + widget.rowSpan - 1}")
+                    ]),
+                  ],
+                )))
+      ],
+    );
   }
 }
