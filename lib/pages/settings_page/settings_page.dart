@@ -27,6 +27,7 @@ import 'package:flutter_course_table/pages/settings_page/developer_page.dart';
 import 'package:flutter_course_table/pages/settings_page/manage_course_table_widget.dart';
 import 'package:github/github.dart';
 import 'package:provider/provider.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 final github = getIt<GitHub>();
 
@@ -168,6 +169,15 @@ class _SettingsPageState extends State<SettingsPage>
                 return;
               }
               if (!mounted) return;
+              Version latestVersion =
+                  Version.parse(latestRelease.tagName ?? "0.0.0");
+              Version currentVersion = Version.parse(appInfoData.version);
+              if (currentVersion >= latestVersion) {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(const SnackBar(content: Text("当前版本已经是最新版本")));
+                return;
+              }
+
               Navigator.push(
                   context,
                   DialogRoute(

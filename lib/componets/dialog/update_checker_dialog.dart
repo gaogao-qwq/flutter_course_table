@@ -21,7 +21,6 @@ import 'package:flutter_course_table/pages/data.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:github/github.dart';
 import 'package:provider/provider.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UpdateCheckerDialog extends StatefulWidget {
@@ -64,36 +63,6 @@ class _UpdateCheckerDialogState extends State<UpdateCheckerDialog>
   @override
   Widget build(BuildContext context) {
     final appInfoData = context.watch<AppInfoData>();
-    Version latestVersion =
-        Version.parse(widget.latestRelease.tagName ?? "0.0.0");
-    Version currentVersion = Version.parse(appInfoData.version);
-
-    if (currentVersion >= latestVersion) {
-      return FadeTransition(
-          opacity: FadeAnimation(_controller),
-          child: SimpleDialog(
-            title: const Text("检查更新"),
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text("当前已是最新版本"),
-                    const Padding(padding: EdgeInsets.all(2)),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text("返回"),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ));
-    }
 
     return FadeTransition(
         opacity: FadeAnimation(_controller),
