@@ -71,20 +71,17 @@ class _SelectSemesterDialogState extends State<SelectSemesterDialog>
         opacity: FadeAnimation(_controller),
         child: SimpleDialog(
           title: const Text("选择学期"),
-          children: <Widget>[
+          children: [
             Column(
-              children: <Widget>[
+              children: [
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    DropdownButton(
-                      icon: const Icon(Icons.arrow_downward),
-                      elevation: 16,
-                      borderRadius: const BorderRadius.all(Radius.circular(4)),
-                      items: getYearItems(),
-                      value: selectedYearIndex.toString(),
-                      onChanged: (value) {
+                  children: [
+                    DropdownMenu(
+                      initialSelection: selectedYearIndex.toString(),
+                      dropdownMenuEntries: yearEntries,
+                      onSelected: (value) {
                         int? year = int.parse(value ?? "-1");
                         setState(() {
                           selectedYearIndex =
@@ -94,18 +91,14 @@ class _SelectSemesterDialogState extends State<SelectSemesterDialog>
                             widget.semesterList[selectedYearIndex].semesterId1;
                       },
                     ),
-                    DropdownButton(
-                      icon: const Icon(Icons.arrow_downward),
-                      elevation: 16,
-                      borderRadius: const BorderRadius.all(Radius.circular(4)),
-                      items: getSemesterItems(),
-                      value: selectedSemester,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedSemester = value ?? "";
-                        });
-                      },
-                    ),
+                    DropdownMenu(
+                        initialSelection: selectedSemester,
+                        dropdownMenuEntries: semesterEntries,
+                        onSelected: (value) {
+                          setState(() {
+                            selectedSemester = value ?? "";
+                          });
+                        }),
                     ElevatedButton(
                       onPressed: () {
                         Navigator.pop(context, {
@@ -113,10 +106,6 @@ class _SelectSemesterDialogState extends State<SelectSemesterDialog>
                           'selectedYear': selectedYear
                         });
                       },
-                      style: const ButtonStyle(
-                        backgroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.green),
-                      ),
                       child: const Text("Import"),
                     ),
                   ],
@@ -127,28 +116,28 @@ class _SelectSemesterDialogState extends State<SelectSemesterDialog>
         ));
   }
 
-  List<DropdownMenuItem<String>> getYearItems() {
-    var items = <DropdownMenuItem<String>>[];
+  List<DropdownMenuEntry<String>> get yearEntries {
+    var items = <DropdownMenuEntry<String>>[];
     for (int i = 0; i < widget.semesterList.length; i++) {
-      items.add(DropdownMenuItem(
+      items.add(DropdownMenuEntry(
         value: i.toString(),
-        child: Text("${widget.semesterList[i].value}学年"),
+        label: "${widget.semesterList[i].value}学年",
       ));
     }
     return items;
   }
 
-  List<DropdownMenuItem<String>> getSemesterItems() {
-    var items = <DropdownMenuItem<String>>[];
+  List<DropdownMenuEntry<String>> get semesterEntries {
+    var items = <DropdownMenuEntry<String>>[];
     if (widget.semesterList[selectedYearIndex].semesterId1.isNotEmpty) {
-      items.add(DropdownMenuItem(
+      items.add(DropdownMenuEntry(
           value: widget.semesterList[selectedYearIndex].semesterId1,
-          child: const Text("第1学期")));
+          label: "第1学期"));
     }
     if (widget.semesterList[selectedYearIndex].semesterId2.isNotEmpty) {
-      items.add(DropdownMenuItem(
+      items.add(DropdownMenuEntry(
           value: widget.semesterList[selectedYearIndex].semesterId2,
-          child: const Text("第2学期")));
+          label: "第2学期"));
     }
     return items;
   }

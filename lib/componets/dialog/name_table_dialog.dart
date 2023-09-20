@@ -69,7 +69,7 @@ class _NameTableDialogState extends State<NameTableDialog>
           title: const Text("为课表命名"),
           children: <Widget>[
             Container(
-              padding: const EdgeInsets.all(64),
+              padding: const EdgeInsets.all(10),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -98,33 +98,28 @@ class _NameTableDialogState extends State<NameTableDialog>
                         labelText: "输入课表名",
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context, null);
-                                },
-                                child: const Text("取消"),
-                              )),
-                          Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: ElevatedButton(
-                              onPressed: () {
-                                if (!_formKey.currentState!.validate()) return;
-                                Navigator.pop(context, name);
-                              },
-                              child: const Text("保存"),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    const Padding(padding: EdgeInsets.all(10)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        const Padding(padding: EdgeInsets.all(10)),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context, null);
+                          },
+                          child: const Text("取消"),
+                        ),
+                        const Padding(padding: EdgeInsets.all(10)),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (!_formKey.currentState!.validate()) return;
+                            Navigator.pop(context, name);
+                          },
+                          child: const Text("保存"),
+                        )
+                      ],
+                    )
                   ],
                 ),
               ),
