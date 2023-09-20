@@ -16,6 +16,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_course_table/configure_dependencies.dart';
+import 'package:flutter_course_table/constants.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -45,5 +46,15 @@ class SharedPreferencesRepository {
 
   void useLightMode(bool useLightMode) {
     prefs.setBool("useLightMode", useLightMode);
+  }
+
+  void setColorSeed(ColorSeed colorSeed) {
+    prefs.setString("colorSeed", colorSeed.label);
+  }
+
+  ColorSeed getColorSeed() {
+    return ColorSeed.values.firstWhere(
+        (element) => element.label == prefs.getString("colorSeed"),
+        orElse: () => ColorSeed.baseColor);
   }
 }

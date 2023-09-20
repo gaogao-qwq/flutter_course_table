@@ -67,16 +67,18 @@ class _CourseTableAppState extends State<CourseTableApp> {
     final themeMode = context.select((AppSettingData data) => data.isLightMode)
         ? ThemeMode.light
         : ThemeMode.dark;
+    final colorSeed = context.select((AppSettingData data) => data.colorSeed);
+
     return MaterialApp(
       scrollBehavior: CourseTableAppScrollBehavior(),
       themeMode: themeMode,
       theme: ThemeData(
-        colorSchemeSeed: const Color(0xff6750a4),
+        colorSchemeSeed: colorSeed.color,
         useMaterial3: true,
         brightness: Brightness.light,
       ),
       darkTheme: ThemeData(
-        colorSchemeSeed: const Color(0xff503d7e),
+        colorSchemeSeed: colorSeed.color,
         useMaterial3: true,
         brightness: Brightness.dark,
       ),

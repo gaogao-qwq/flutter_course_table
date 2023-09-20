@@ -22,6 +22,22 @@ const double transitionLength = 500;
 const int courseInfoLength = 10;
 const int largeCourseInfoLength = 20;
 
+enum ColorSeed {
+  baseColor('Material 3', Color(0xff6750a4)),
+  indigo('靛青', Colors.indigo),
+  blue('蔚蓝', Colors.blue),
+  teal('青绿', Colors.teal),
+  green('碧绿', Colors.green),
+  yellow('柠黄', Colors.yellow),
+  orange('橘橙', Colors.orange),
+  deepOrange('橙红', Colors.deepOrange),
+  pink('粉红', Colors.pink);
+
+  const ColorSeed(this.label, this.color);
+  final String label;
+  final Color color;
+}
+
 const List<NavigationDestination> appBarDestinations = [
   NavigationDestination(
     tooltip: '',

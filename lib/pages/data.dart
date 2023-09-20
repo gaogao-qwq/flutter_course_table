@@ -16,6 +16,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_course_table/configure_dependencies.dart';
+import 'package:flutter_course_table/constants.dart';
 import 'package:flutter_course_table/internal/database/course_table_repository.dart';
 import 'package:flutter_course_table/internal/prefs/shared_preferences_repository.dart';
 import 'package:flutter_course_table/internal/types/course_table.dart';
@@ -171,19 +172,28 @@ class CourseTableSelectorData with ChangeNotifier {
 }
 
 class AppSettingData with ChangeNotifier {
+  late ColorSeed _colorSeed;
   late bool _isLightMode;
   late String _currCourseTableName;
   late String _crawlerApiUrl;
 
   AppSettingData() {
+    _colorSeed = prefsRepository.getColorSeed();
     _isLightMode = prefsRepository.isLightMode();
     _currCourseTableName = prefsRepository.getCurrentCourseTableName();
     _crawlerApiUrl = prefsRepository.getCrawlerApiUrl();
   }
 
+  ColorSeed get colorSeed => _colorSeed;
   bool get isLightMode => _isLightMode;
   String get currCourseTableName => _currCourseTableName;
   String get crawlerApiUrl => _crawlerApiUrl;
+
+  void changeColorSeed(ColorSeed colorSeed) {
+    _colorSeed = colorSeed;
+    prefsRepository.setColorSeed(colorSeed);
+    notifyListeners();
+  }
 
   void useLightMode(bool useLightMode) {
     _isLightMode = useLightMode;

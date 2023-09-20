@@ -19,6 +19,7 @@ import 'package:flutter_course_table/animations/fade_page_route.dart';
 import 'package:flutter_course_table/componets/dialog/crawler_api_selector_dialog.dart';
 import 'package:flutter_course_table/componets/dialog/export_course_table_to_xlsx_dialog.dart';
 import 'package:flutter_course_table/componets/dialog/info_dialog.dart';
+import 'package:flutter_course_table/componets/dialog/select_color_seed_dialog.dart';
 import 'package:flutter_course_table/componets/dialog/update_checker_dialog.dart';
 import 'package:flutter_course_table/configure_dependencies.dart';
 import 'package:flutter_course_table/pages/data.dart';
@@ -65,8 +66,14 @@ class _SettingsPageState extends State<SettingsPage>
         children: [
           ListTile(
             leading: appSettingData.isLightMode
-                ? const Icon(Icons.light_mode)
-                : const Icon(Icons.dark_mode),
+                ? const Icon(
+                    Icons.light_mode,
+                    color: Colors.amber,
+                  )
+                : const Icon(
+                    Icons.dark_mode,
+                    color: Colors.indigo,
+                  ),
             title: const Text("更改显示模式"),
             trailing: Switch(
                 value: appSettingData.isLightMode,
@@ -79,6 +86,17 @@ class _SettingsPageState extends State<SettingsPage>
                   .useLightMode(!appSettingData.isLightMode);
             },
           ),
+          ListTile(
+            leading: Icon(Icons.palette, color: appSettingData.colorSeed.color),
+            title: const Text("更改主题颜色"),
+            subtitle: Text(appSettingData.colorSeed.label),
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) => const SelectColorSeedDialog());
+            },
+          ),
+          const Divider(),
           ListTile(
             leading: const Icon(Icons.api_rounded),
             title: const Text("设置爬虫服务地址"),

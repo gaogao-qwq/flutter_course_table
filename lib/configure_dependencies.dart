@@ -18,6 +18,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_course_table/constants.dart';
 import 'package:get_it/get_it.dart';
 import 'package:github/github.dart';
 import 'package:injectable/injectable.dart';
@@ -52,6 +53,9 @@ Future<void> initializeSharedPreferences() async {
   bool isLightMode =
       SchedulerBinding.instance.platformDispatcher.platformBrightness ==
           Brightness.light;
+  if (!prefs.containsKey("colorSeed")) {
+    prefs.setString("colorSeed", ColorSeed.baseColor.label);
+  }
   if (!prefs.containsKey("useLightMode")) {
     prefs.setBool("useLightMode", isLightMode);
   }
